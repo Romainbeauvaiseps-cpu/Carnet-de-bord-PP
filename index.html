@@ -20,6 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             /* Palette moderne et vibrante */
@@ -1661,8 +1662,15 @@
     <div id="section-equipe" class="section" style="text-align: center;">
         <button onclick="showSection('section-home')" style="margin-bottom: 20px;">← Accueil</button>
         <h2>Équipe Pédagogique</h2>
-        <p style="color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.6); margin-bottom: 25px;">Saisissez les noms des
+        <p style="color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.6); margin-bottom: 20px;">Saisissez les noms des
             enseignants de l'équipe pour chaque matière de la classe.</p>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
+            <button class="btn-orange"
+                style="padding: 10px 22px; font-weight: bold; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px; font-size: 0.95em; box-shadow: 0 4px 12px rgba(243,156,18,0.3); border: none; cursor: pointer;"
+                onclick="ouvrirModalGestionPoles()">
+                ⚙️ Paramétrer les pôles & matières
+            </button>
+        </div>
 
         <div id="equipe-container"
             style="max-width: 900px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); color: var(--text);">
@@ -1847,7 +1855,7 @@
 
                 <!-- Right Workspace -->
                 <div id="profile-details-right" style="min-width: 0;">
-                    <div class="tabs" style="margin-bottom: 20px; gap: 8px;">
+                    <div class="tabs" style="margin-bottom: 20px; gap: 8px; align-items: center; flex-wrap: wrap;">
                         <div class="tab active" onclick="switchTab(event, 'f-infos')"
                             style="padding: 8px 14px; font-size: 0.9em;">📂 Profil</div>
                         <div class="tab" onclick="switchTab(event, 'f-comp')"
@@ -1866,6 +1874,10 @@
                         <div class="tab"
                             style="color: var(--primary); font-weight: bold; padding: 8px 14px; font-size: 0.9em;"
                             onclick="switchTab(event, 'f-bilans')">📋 Bilans</div>
+                        <button class="btn-green" onclick="ouvrirModalExportPDF()"
+                            style="margin-left: auto; padding: 8px 16px; font-weight: bold; border-radius: 8px; font-size: 0.88em; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(46,204,113,0.3); border: none; cursor: pointer;">
+                            📄 Export PDF Collègues
+                        </button>
                     </div>
 
                     <div id="f-infos" class="tab-content active"
@@ -1982,6 +1994,159 @@
                     style="background:none; border:none; color:white; font-size:2em; cursor:pointer; line-height:1;">&times;</button>
             </div>
             <iframe id="pdf-frame" src="" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+    </div>
+
+    <!-- MODAL EXPORT PDF ELEVE -->
+    <div id="modal-export-pdf"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2500; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+        <div
+            style="background:var(--bg, #f4f7f6); width:95%; max-width:1100px; height:92vh; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 15px 40px rgba(0,0,0,0.3);">
+            <!-- Header -->
+            <div
+                style="padding:15px 25px; background:var(--primary, #2c3e50); color:white; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:1.4em;">📄</span>
+                    <h3 id="modal-export-pdf-title" style="margin:0; font-size:1.25em; font-weight:700;">Export Fiche
+                        Élève PDF (Synthèse Collègues)</h3>
+                </div>
+                <button onclick="fermerModalExportPDF()"
+                    style="background:none; border:none; color:white; font-size:2.2em; cursor:pointer; line-height:1; padding:0 10px;">&times;</button>
+            </div>
+
+            <!-- Body -->
+            <div style="flex:1; display:flex; overflow:hidden; gap:0;">
+                <!-- Left Controls Panel -->
+                <div
+                    style="width:300px; flex-shrink:0; background:#ffffff; padding:20px; border-right:1px solid #dfe6e9; display:flex; flex-direction:column; gap:15px; overflow-y:auto;">
+                    <h4
+                        style="margin:0; color:#1e293b; font-size:1.05em; font-weight:700; border-bottom:2px solid #3498db; padding-bottom:8px;">
+                        ⚙️ Options du Document</h4>
+
+                    <div style="display:flex; flex-direction:column; gap:12px; font-size:0.92em;">
+                        <label
+                            style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:#1e293b;">
+                            <input type="checkbox" id="pdf-opt-identity" checked
+                                style="width:16px; height:16px; accent-color:#3498db;"
+                                onchange="actualiserPrevisualisationPDF()"> 👤 Identité & Binômes
+                        </label>
+                        <label
+                            style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:#1e293b;">
+                            <input type="checkbox" id="pdf-opt-photo" checked
+                                style="width:16px; height:16px; accent-color:#3498db;"
+                                onchange="actualiserPrevisualisationPDF()"> 🖼️ Photo de l'élève
+                        </label>
+                        <label
+                            style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:#1e293b;">
+                            <input type="checkbox" id="pdf-opt-dispositifs" checked
+                                style="width:16px; height:16px; accent-color:#3498db;"
+                                onchange="actualiserPrevisualisationPDF()"> 🤝 Dispositifs & PAP/PAI
+                        </label>
+                        <label
+                            style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:#1e293b;">
+                            <input type="checkbox" id="pdf-opt-profil" checked
+                                style="width:16px; height:16px; accent-color:#3498db;"
+                                onchange="actualiserPrevisualisationPDF()"> 🎓 Profils (Scolaire/Vie Sc.)
+                        </label>
+                        <label
+                            style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:#1e293b;">
+                            <input type="checkbox" id="pdf-opt-observations" checked
+                                style="width:16px; height:16px; accent-color:#3498db;"
+                                onchange="actualiserPrevisualisationPDF()"> 📝 Suivi & Remarques
+                        </label>
+                        <label
+                            style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:#1e293b;">
+                            <input type="checkbox" id="pdf-opt-orientation" checked
+                                style="width:16px; height:16px; accent-color:#3498db;"
+                                onchange="actualiserPrevisualisationPDF()"> 🎯 Orientation & Vœux
+                        </label>
+                        <label
+                            style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:#1e293b;">
+                            <input type="checkbox" id="pdf-opt-resultats" checked
+                                style="width:16px; height:16px; accent-color:#3498db;"
+                                onchange="actualiserPrevisualisationPDF()"> 📊 Moyennes & Bilans
+                        </label>
+                    </div>
+
+                    <hr style="border:0; border-top:1px solid #dfe6e9; margin:5px 0;">
+
+                    <div style="display:flex; flex-direction:column; gap:10px; margin-top:auto;">
+                        <button class="btn-green" onclick="telechargerFicheElevePDF()"
+                            style="padding:12px; font-weight:bold; border-radius:10px; display:flex; align-items:center; justify-content:center; gap:8px; font-size:0.95em; box-shadow:0 4px 12px rgba(46,204,113,0.3); border:none; cursor:pointer;">
+                            <span>📥</span> Télécharger le PDF
+                        </button>
+                        <button class="btn-blue" onclick="imprimerFicheElevePDF()"
+                            style="padding:10px; font-weight:bold; border-radius:10px; display:flex; align-items:center; justify-content:center; gap:8px; font-size:0.92em; border:none; cursor:pointer;">
+                            <span>🖨️</span> Imprimer la fiche
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Preview Area -->
+                <div
+                    style="flex:1; background:#eef2f5; padding:20px; overflow-y:auto; display:flex; justify-content:center; align-items:flex-start;">
+                    <div id="pdf-preview-wrapper"
+                        style="width:100%; max-width:800px; background:white; box-shadow:0 8px 30px rgba(0,0,0,0.15); border-radius:4px; min-height:842px;">
+                        <div id="pdf-export-preview-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GESTION POLES ET MATIERES -->
+    <div id="modal-gestion-poles"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2500; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+        <div
+            style="background:var(--card-bg, #ffffff); width:80%; max-width:735px; height:88vh; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 15px 40px rgba(0,0,0,0.3);">
+            <!-- Header -->
+            <div
+                style="padding:15px 25px; background:var(--primary, #2c3e50); color:white; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:1.4em;">⚙️</span>
+                    <h3 style="margin:0; font-size:1.25em; font-weight:700;">Paramétrage des Pôles & Disciplines</h3>
+                </div>
+                <button onclick="fermerModalGestionPoles()"
+                    style="background:none; border:none; color:white; font-size:2.2em; cursor:pointer; line-height:1; padding:0 10px;">&times;</button>
+            </div>
+
+            <!-- Description Banner -->
+            <div
+                style="padding:12px 25px; background:#eef2f5; border-bottom:1px solid #dfe6e9; font-size:0.9em; color:#475569;">
+                Configurez les pôles et les disciplines enseignées dans votre établissement. Les matières enregistrées
+                ici mettront automatiquement à jour l'équipe pédagogique et tous les sélecteurs de l'application.
+            </div>
+
+            <!-- Body -->
+            <div id="modal-gestion-poles-body"
+                style="flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:20px; background:#f8fafc;">
+                <!-- Les cartes des pôles seront insérées dynamiquement -->
+            </div>
+
+            <!-- Footer Actions -->
+            <div
+                style="padding:12px 20px; background:white; border-top:1px solid #dfe6e9; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:nowrap; overflow-x:auto;">
+                <div style="display:flex; gap:6px; flex-shrink:0;">
+                    <button class="btn-blue" onclick="ajouterPoleConfig()"
+                        style="padding:6px 12px; font-size:0.84em; border-radius:6px; font-weight:600; white-space:nowrap;">
+                        ➕ Ajouter Pôle
+                    </button>
+                    <button class="btn-orange" onclick="reinitialiserPolesDefault()"
+                        style="padding:6px 12px; font-size:0.84em; border-radius:6px; font-weight:600; opacity:0.9; white-space:nowrap;">
+                        🔄 Réinitialiser
+                    </button>
+                </div>
+                <div style="display:flex; gap:6px; flex-shrink:0;">
+                    <button class="btn-red" onclick="fermerModalGestionPoles()"
+                        style="padding:6px 14px; font-size:0.84em; border-radius:6px; white-space:nowrap;">
+                        Annuler
+                    </button>
+                    <button class="btn-green" onclick="sauvegarderGestionPoles()"
+                        style="padding:6px 16px; font-size:0.84em; border-radius:6px; font-weight:bold; box-shadow:0 4px 10px rgba(46,204,113,0.3); white-space:nowrap;">
+                        💾 Enregistrer
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -2270,6 +2435,7 @@
                         <span style="color:#7f8c8d; display:block;">${escapeHTML(e.prenom)}</span>
                     </div>
                     <div class="card-actions">
+                        <button class="btn-tiny btn-blue" id="btn-pdf-${e.id}" title="Exporter la fiche PDF collègues">📄</button>
                         <button class="btn-tiny bg-orange" id="btn-edit-${e.id}">✏️</button>
                         <button class="btn-tiny bg-red" id="btn-del-${e.id}">🗑️</button>
                     </div>
@@ -2278,6 +2444,10 @@
                 container.appendChild(div);
 
                 // Attachement des événements boutons avec StopPropagation
+                document.getElementById(`btn-pdf-${e.id}`).onclick = function (evt) {
+                    evt.stopPropagation();
+                    ouvrirModalExportPDF(e.id);
+                };
                 document.getElementById(`btn-edit-${e.id}`).onclick = function (evt) {
                     evt.stopPropagation();
                     modifierEleve(e.id);
@@ -2809,10 +2979,10 @@
                 </div>
 
                 <div id="comp-form-container" style="display:none; margin-top:15px; background:var(--light); padding:15px; border-radius:10px; border:1px solid var(--border);">
-                    <div class="grid">
-                        <div class="form-group">
-                            <label>Fonction</label>
-                            <select id="comp-func">
+                    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 15px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.88em; margin-bottom: 5px;">Fonction</label>
+                            <select id="comp-func" style="padding: 8px 10px; font-size: 0.9em; border-radius: 8px; border-width: 1px;">
                                 <option value="">-- Sélectionner --</option>
                                 <option value="Délégué principal">Délégué principal</option>
                                 <option value="Délégué suppléant">Délégué suppléant</option>
@@ -2820,18 +2990,18 @@
                                 <option value="CVC">CVC</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Accompagnement pédagogique</label>
-                            <select id="comp-acomp" onchange="onAcompChange()">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.88em; margin-bottom: 5px;">Accompagnement pédagogique</label>
+                            <select id="comp-acomp" onchange="onAcompChange()" style="padding: 8px 10px; font-size: 0.9em; border-radius: 8px; border-width: 1px;">
                                 <option value="">-- Sélectionner --</option>
                                 <option value="PAP">PAP</option>
                                 <option value="PPRE">PPRE</option>
                                 <option value="PAI">PAI</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Dispositif</label>
-                            <select id="comp-disp">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.88em; margin-bottom: 5px;">Dispositif</label>
+                            <select id="comp-disp" style="padding: 8px 10px; font-size: 0.9em; border-radius: 8px; border-width: 1px;">
                                 <option value="">-- Sélectionner --</option>
                                 <option value="Devoirs Faits">Devoirs Faits</option>
                                 <option value="Tutorat">Tutorat</option>
@@ -3263,6 +3433,389 @@
         function closePdfModal() {
             document.getElementById('pdf-modal-overlay').style.display = 'none';
             document.getElementById('pdf-frame').src = '';
+        }
+
+        /* --- GESTION EXPORT PDF ELEVE POUR COLLEGUES --- */
+        let pdfExportCurrentIndex = null;
+
+        function ouvrirModalExportPDF(eleveId = null) {
+            if (eleveId !== null) {
+                const idx = eleves.findIndex(e => e.id === eleveId);
+                if (idx !== -1) pdfExportCurrentIndex = idx;
+            } else if (indexActuel !== null) {
+                pdfExportCurrentIndex = indexActuel;
+            }
+
+            if (pdfExportCurrentIndex === null || !eleves[pdfExportCurrentIndex]) {
+                return showModal("Erreur", "Aucun élève sélectionné pour l'export.");
+            }
+
+            const e = eleves[pdfExportCurrentIndex];
+            const modalTitle = document.getElementById('modal-export-pdf-title');
+            if (modalTitle) {
+                modalTitle.textContent = `Export Fiche PDF - ${e.nom.toUpperCase()} ${e.prenom}`;
+            }
+
+            const modal = document.getElementById('modal-export-pdf');
+            if (modal) {
+                modal.style.display = 'flex';
+                actualiserPrevisualisationPDF();
+            }
+        }
+
+        function fermerModalExportPDF() {
+            const modal = document.getElementById('modal-export-pdf');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function getOptionsPDFExport() {
+            return {
+                identity: document.getElementById('pdf-opt-identity')?.checked ?? true,
+                photo: document.getElementById('pdf-opt-photo')?.checked ?? true,
+                dispositifs: document.getElementById('pdf-opt-dispositifs')?.checked ?? true,
+                profil: document.getElementById('pdf-opt-profil')?.checked ?? true,
+                observations: document.getElementById('pdf-opt-observations')?.checked ?? true,
+                orientation: document.getElementById('pdf-opt-orientation')?.checked ?? true,
+                resultats: document.getElementById('pdf-opt-resultats')?.checked ?? true
+            };
+        }
+
+        function actualiserPrevisualisationPDF() {
+            if (pdfExportCurrentIndex === null || !eleves[pdfExportCurrentIndex]) return;
+            const e = eleves[pdfExportCurrentIndex];
+            const opts = getOptionsPDFExport();
+            const container = document.getElementById('pdf-export-preview-content');
+            if (container) {
+                container.innerHTML = genererHTMLFichePDF(e, opts);
+            }
+        }
+
+        function genererHTMLFichePDF(e, opts) {
+            const dateExport = new Date().toLocaleDateString('fr-FR');
+
+            // Format âge & naissance
+            let ageText = "";
+            let dobFormatted = "Non renseignée";
+            if (e.infos && e.infos.dob) {
+                const birthDate = new Date(e.infos.dob);
+                const ageDifMs = Date.now() - birthDate.getTime();
+                const ageDate = new Date(ageDifMs);
+                const years = Math.abs(ageDate.getUTCFullYear() - 1970);
+                if (!isNaN(years)) ageText = `${years} ans`;
+
+                const parts = e.infos.dob.split('-');
+                if (parts.length === 3) {
+                    dobFormatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                } else {
+                    dobFormatted = e.infos.dob;
+                }
+            }
+
+            // Format binômes
+            let binomeTxt = "Aucun";
+            if (e.infos && e.infos.binome) {
+                binomeTxt = escapeHTML(e.infos.binome);
+                if (e.infos.binome2) binomeTxt += ` & ${escapeHTML(e.infos.binome2)}`;
+            }
+
+            // Dispositifs & Accompagnements Badges & Cards
+            let badgesPillsHTML = "";
+            let acompCardsHTML = "";
+
+            if (opts.dispositifs && e.infosComplementaires && e.infosComplementaires.length > 0) {
+                e.infosComplementaires.forEach(item => {
+                    if (item.func) {
+                        badgesPillsHTML += `<span style="background: #cbd5e1; color: #0f172a; padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 5px;">👑 ${escapeHTML(item.func)}</span>`;
+                    }
+                    if (item.acomp) {
+                        badgesPillsHTML += `<span style="background: #fecdd3; color: #9f1239; padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 5px;">➕ ${escapeHTML(item.acomp)}</span>`;
+                    }
+                    if (item.disp) {
+                        badgesPillsHTML += `<span style="background: #e9d5ff; color: #581c87; padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 5px;">📝 ${escapeHTML(item.disp)}</span>`;
+                    }
+
+                    if (item.acomp || item.acompDetails || item.libre) {
+                        let acompTitle = item.acomp || "Information complémentaire";
+                        let infoTxt = item.acompDetails?.info || "Aucune information";
+                        let amenagementTxt = item.acompDetails?.amenagement || item.libre || "Aucun aménagement spécifique";
+
+                        acompCardsHTML += `
+                            <div style="background: #e2e8f0; border-radius: 10px; padding: 12px 16px; font-size: 11.5px; color: #0f172a; line-height: 1.6; border: 1px solid #cbd5e1; margin-bottom: 12px;">
+                                <div><strong>Accompagnement :</strong> ${escapeHTML(acompTitle)}</div>
+                                <div><strong>Informations :</strong> ${escapeHTML(infoTxt)}</div>
+                                <div><strong>Aménagements prévus :</strong> ${escapeHTML(amenagementTxt)}</div>
+                            </div>`;
+                    }
+                });
+            }
+
+            // Listes de profil (Scolaire, Familial, Vie scolaire / Contexte)
+            const renderProfilListItems = (arr) => {
+                if (!arr || arr.length === 0) return '<div style="font-style:italic; color:#94a3b8; font-size:11px;">Aucune observation</div>';
+                return '<ul style="margin:0; padding-left:14px; font-size:11.5px; color:#334155; line-height:1.5;">' +
+                    arr.map(item => {
+                        const txt = typeof item === 'string' ? item : (item.text || "");
+                        return `<li>${escapeHTML(txt)}</li>`;
+                    }).join('') + '</ul>';
+            };
+
+            const profScolaire = renderProfilListItems(e.profil ? e.profil.scolaire : []);
+            const profFamille = renderProfilListItems(e.profil ? e.profil.famille : []);
+            const profContexte = renderProfilListItems(e.profil ? e.profil.contexte : []);
+            const hasProfilData = (e.profil?.scolaire?.length || e.profil?.famille?.length || e.profil?.contexte?.length);
+
+            // Remarques & Suivi Pédagogique Tableau
+            let observationsRows = "";
+            if (opts.observations && e.observationsList && e.observationsList.length > 0) {
+                observationsRows = e.observationsList.map(obs => `
+                    <tr style="border-bottom: 1px solid #cbd5e1;">
+                        <td style="padding: 8px 12px; border: 1px solid #cbd5e1; color: #475569; font-size: 11px;">${escapeHTML(obs.date || "")}</td>
+                        <td style="padding: 8px 12px; border: 1px solid #cbd5e1; font-weight: 700; color: #0f172a; font-size: 11px;">${escapeHTML(obs.source || "Équipe éducative")}</td>
+                        <td style="padding: 8px 12px; border: 1px solid #cbd5e1; color: #0f172a; font-size: 11px; white-space: pre-line;">${escapeHTML(obs.text || "")}</td>
+                    </tr>
+                `).join('');
+            } else {
+                observationsRows = `
+                    <tr>
+                        <td colspan="3" style="padding: 12px; text-align: center; color: #94a3b8; font-style: italic; border: 1px solid #cbd5e1;">
+                            Aucune remarque de suivi enregistrée
+                        </td>
+                    </tr>`;
+            }
+
+            // Orientation & Projet
+            let orientationHTML = "";
+            if (opts.orientation && e.orientation) {
+                let p1Text = "";
+                if (e.orientation.phase1 && (e.orientation.phase1.statut || e.orientation.phase1.notes)) {
+                    p1Text = `<div style="margin-bottom:6px; font-size:11px;"><strong>Réflexion & Démarches :</strong> ${escapeHTML(e.orientation.phase1.statut || "")} ${e.orientation.phase1.notes ? `<em>(${escapeHTML(e.orientation.phase1.notes)})</em>` : ""}</div>`;
+                }
+
+                let voeuxList = "";
+                if (e.orientation.phase3 && e.orientation.phase3.voeux && e.orientation.phase3.voeux.length > 0) {
+                    voeuxList = `<div style="font-size:11px;"><strong>Vœux d'orientation arrêtés :</strong><ol style="margin:4px 0 0 18px; padding:0;">` +
+                        e.orientation.phase3.voeux.map(v => `
+                            <li style="margin-bottom:2px;"><strong>${escapeHTML(v.filiere || v.path || "")}</strong> ${v.specialite ? `- ${escapeHTML(v.specialite)}` : ''} ${v.etablissement || v.school ? `(${escapeHTML(v.etablissement || v.school)})` : ''} ${v.avis ? `<span style="color:#15803d; font-weight:bold;">[Avis : ${escapeHTML(v.avis)}]</span>` : ""}</li>
+                        `).join('') + `</ol></div>`;
+                } else if (e.orientation.phase2 && e.orientation.phase2.choix && e.orientation.phase2.choix.length > 0) {
+                    voeuxList = `<div style="font-size:11px;"><strong>Pistes d'orientation envisagées :</strong><ul style="margin:4px 0 0 18px; padding:0;">` +
+                        e.orientation.phase2.choix.map(c => `
+                            <li style="margin-bottom:2px;"><strong>${escapeHTML(c.filiere)}</strong> ${c.avis ? `<span style="color:#15803d;">(Avis : ${escapeHTML(c.avis)})</span>` : ""}</li>
+                        `).join('') + `</ul></div>`;
+                }
+
+                if (p1Text || voeuxList) {
+                    orientationHTML = `<div style="background:#e2e8f0; padding:12px 16px; border-radius:10px; border:1px solid #cbd5e1; margin-bottom:20px;">${p1Text}${voeuxList}</div>`;
+                }
+            }
+
+            // Résultats & Bilans Trimestriels
+            let resultatsHTML = "";
+            if (opts.resultats) {
+                const trimesters = ["T1", "T2", "T3"];
+                let trimBlocks = [];
+
+                trimesters.forEach(trim => {
+                    const res = e.resultats ? e.resultats[trim] : null;
+                    const bilan = e.bilansTrimestriels ? e.bilansTrimestriels[trim] : null;
+
+                    if ((res && (res.moyenneG || res.abs !== undefined || res.retards !== undefined)) || bilan) {
+                        let moyG = (res && res.moyenneG !== undefined && res.moyenneG !== "") ? escapeHTML(String(res.moyenneG)) : "N/A";
+                        let abs = res ? escapeHTML(String(res.abs || 0)) : "0";
+                        let retards = res ? escapeHTML(String(res.retards || 0)) : "0";
+
+                        trimBlocks.push(`
+                            <div style="flex:1; background:#e2e8f0; padding:10px 12px; border-radius:8px; border:1px solid #cbd5e1; font-size:11px; min-width:180px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #cbd5e1; padding-bottom:4px; margin-bottom:6px;">
+                                    <strong style="color:#0f172a; font-size:12px;">${trim}</strong>
+                                    <span style="background:#0f172a; color:white; padding:2px 8px; border-radius:10px; font-weight:bold; font-size:11px;">Moy : ${moyG}</span>
+                                </div>
+                                <div style="font-size:10.5px; color:#475569; margin-bottom:4px;">Absences : <strong>${abs} h</strong> &bull; Retards : <strong>${retards}</strong></div>
+                                ${bilan ? `<div style="background:#fff9c4; padding:6px 8px; border-radius:6px; margin-top:4px; font-style:italic; color:#334155; font-size:10.5px; border-left:3px solid #f59e0b;">"${escapeHTML(bilan)}"</div>` : ''}
+                            </div>
+                        `);
+                    }
+                });
+
+                if (trimBlocks.length > 0) {
+                    resultatsHTML = `<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;">${trimBlocks.join('')}</div>`;
+                }
+            }
+
+            return `
+                <div style="font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; padding: 30px; background: #ffffff; box-sizing: border-box; font-size: 12px; line-height: 1.5; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 4px 20px rgba(0,0,0,0.06); max-width: 800px; margin: 0 auto;">
+                    
+                    <!-- En-tête officiel -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #334155; padding-bottom: 12px; margin-bottom: 20px;">
+                        <div>
+                            <h1 style="margin: 0; font-size: 20px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">FICHE DE SYNTHÈSE ÉLÈVE</h1>
+                            <div style="font-size: 11.5px; color: #64748b; font-weight: 600; margin-top: 3px;">Carnet de Bord numérique - Professeur Principal</div>
+                        </div>
+                        <div style="text-align: right; font-size: 11.5px; color: #64748b; font-weight: 500;">
+                            Édité le ${dateExport}
+                        </div>
+                    </div>
+
+                    <!-- Carte Identité Élève -->
+                    ${opts.identity ? `
+                    <div style="background: #cbd5e1; padding: 18px 22px; border-radius: 14px; margin-bottom: 22px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #94a3b8; page-break-inside: avoid;">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            ${opts.photo && e.photo ? `
+                                <img src="${e.photo}" style="width: 54px; height: 54px; border-radius: 50%; object-fit: contain; background: #fff; border: 2px solid #0f172a;" />
+                            ` : `
+                                <div style="width: 54px; height: 54px; border-radius: 50%; background: #0f172a; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; flex-shrink: 0;">
+                                    ${escapeHTML((e.prenom ? e.prenom.charAt(0) : "") + (e.nom ? e.nom.charAt(0) : ""))}
+                                </div>
+                            `}
+                            <div style="font-size: 12px; color: #0f172a; line-height: 1.6;">
+                                <div><strong>Nom & Prénom :</strong> ${escapeHTML((e.nom || "").toUpperCase())} ${escapeHTML(e.prenom || "")}</div>
+                                <div><strong>Sexe :</strong> ${escapeHTML(e.infos?.sexe || "N/A")}</div>
+                                <div><strong>Binôme(s) d'absence :</strong> ${binomeTxt}</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: #0f172a; line-height: 1.6; text-align: left;">
+                            <div><strong>Né(e) le :</strong> ${dobFormatted} ${ageText ? `(${ageText})` : ""}</div>
+                            <div><strong>Langues :</strong> LV1 : ${escapeHTML(e.infos?.lv1 || "N/A")} | LV2 : ${escapeHTML(e.infos?.lv2 || "N/A")}</div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Rôles & Dispositifs d'accompagnement -->
+                    ${opts.dispositifs && (badgesPillsHTML || acompCardsHTML) ? `
+                    <div style="margin-bottom: 22px; page-break-inside: avoid;">
+                        <h3 style="font-size: 12.5px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+                            🤝 RÔLES & DISPOSITIFS D'ACCOMPAGNEMENT
+                        </h3>
+                        ${badgesPillsHTML ? `<div style="display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">${badgesPillsHTML}</div>` : ''}
+                        ${acompCardsHTML}
+                    </div>
+                    ` : ''}
+
+                    <!-- Profil & Éléments de contexte -->
+                    ${opts.profil && hasProfilData ? `
+                    <div style="margin-bottom: 22px; page-break-inside: avoid;">
+                        <h3 style="font-size: 12.5px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+                            🎓 PROFIL & ÉLÉMENTS DE CONTEXTE
+                        </h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                            <div style="background: #e2e8f0; border-radius: 10px; padding: 12px 14px; border: 1px solid #cbd5e1;">
+                                <h4 style="margin: 0 0 8px 0; font-size: 11.5px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">📚 Profil Scolaire</h4>
+                                ${profScolaire}
+                            </div>
+                            <div style="background: #e2e8f0; border-radius: 10px; padding: 12px 14px; border: 1px solid #cbd5e1;">
+                                <h4 style="margin: 0 0 8px 0; font-size: 11.5px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">🏠 Situation Familiale</h4>
+                                ${profFamille}
+                            </div>
+                            <div style="background: #e2e8f0; border-radius: 10px; padding: 12px 14px; border: 1px solid #cbd5e1;">
+                                <h4 style="margin: 0 0 8px 0; font-size: 11.5px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">🧠 Contexte & Réflexions</h4>
+                                ${profContexte}
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Remarques & Suivi Pédagogique -->
+                    ${opts.observations ? `
+                    <div style="margin-bottom: 22px; page-break-inside: avoid;">
+                        <h3 style="font-size: 12.5px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+                            📝 REMARQUES & SUIVI PÉDAGOGIQUE
+                        </h3>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 11.5px; background: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1;">
+                            <thead>
+                                <tr style="background: #e2e8f0; text-align: left; color: #0f172a; font-weight: 800;">
+                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1; width: 120px;">Date</th>
+                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1; width: 130px;">Provenance</th>
+                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1;">Remarque / Suivi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${observationsRows}
+                            </tbody>
+                        </table>
+                    </div>
+                    ` : ''}
+
+                    <!-- Orientation & Projet -->
+                    ${opts.orientation && orientationHTML ? `
+                    <div style="margin-bottom: 22px; page-break-inside: avoid;">
+                        <h3 style="font-size: 12.5px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+                            🎯 ORIENTATION & PROJET ÉLÈVE
+                        </h3>
+                        ${orientationHTML}
+                    </div>
+                    ` : ''}
+
+                    <!-- Résultats & Bilans Trimestriels -->
+                    ${opts.resultats && resultatsHTML ? `
+                    <div style="margin-bottom: 22px; page-break-inside: avoid;">
+                        <h3 style="font-size: 12.5px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+                            📊 RÉSULTATS & BILANS TRIMESTRIELS
+                        </h3>
+                        ${resultatsHTML}
+                    </div>
+                    ` : ''}
+
+                </div>
+            `;
+        }
+
+        function telechargerFicheElevePDF() {
+            if (pdfExportCurrentIndex === null || !eleves[pdfExportCurrentIndex]) return;
+            const e = eleves[pdfExportCurrentIndex];
+            const element = document.getElementById('pdf-export-preview-content');
+
+            if (!element || !window.html2pdf) {
+                return showModal("Erreur", "Le module de génération PDF n'est pas disponible.");
+            }
+
+            const nomClean = (e.nom || "ELEVE").toUpperCase().replace(/[^A-Z0-9]/gi, '_');
+            const prenomClean = (e.prenom || "").replace(/[^A-Z0-9]/gi, '_');
+            const fileName = `Fiche_Eleve_${nomClean}_${prenomClean}.pdf`;
+
+            const opt = {
+                margin: [8, 8, 8, 8],
+                filename: fileName,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function imprimerFicheElevePDF() {
+            const content = document.getElementById('pdf-export-preview-content')?.innerHTML;
+            if (!content) return;
+
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                return showModal("Information", "Veuillez autoriser les fenêtres surgissantes pour l'impression.");
+            }
+
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Impression Fiche Élève</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+                    <style>
+                        @page { size: A4; margin: 10mm; }
+                        body { font-family: 'Outfit', sans-serif; margin: 0; padding: 0; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    </style>
+                </head>
+                <body>
+                    ${content}
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            setTimeout(function() { window.close(); }, 500);
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
         }
 
         // --- GESTION JOURNAL DISCIPLINAIRE ---
@@ -5060,7 +5613,7 @@
             ]);
         }
 
-        const polesEquipe = [
+        const defaultPolesEquipe = [
             {
                 nom: "🔬 Pôle Scientifique",
                 color: "#2ecc71",
@@ -5091,7 +5644,23 @@
             }
         ];
 
+        function getPolesEquipe() {
+            const saved = localStorage.getItem('pp_custom_poles_equipe');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                } catch (e) {
+                    console.error("Erreur lecture custom poles:", e);
+                }
+            }
+            return JSON.parse(JSON.stringify(defaultPolesEquipe));
+        }
+
+        let polesEquipe = getPolesEquipe();
+
         function initEquipeSection() {
+            polesEquipe = getPolesEquipe();
             const container = document.getElementById('equipe-container');
             if (!container) return;
 
@@ -5101,24 +5670,28 @@
             polesEquipe.forEach(p => {
                 html += `
                     <div style="background: var(--light); padding: 20px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.01);">
-                        <h3 style="margin-top: 0; color: ${p.color}; border-bottom: 2px solid ${p.color}; padding-bottom: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; font-size: 1.15em; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
-                            <span>${p.nom}</span>
+                        <h3 style="margin-top: 0; color: ${p.color || 'var(--primary)'}; border-bottom: 2px solid ${p.color || 'var(--primary)'}; padding-bottom: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; font-size: 1.15em; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <span>${escapeHTML(p.nom)}</span>
                         </h3>
                         <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px;">
                 `;
 
-                p.matieres.forEach(m => {
-                    const valNom = equipe[m.id]?.nom || equipe[m.id] || "";
-                    html += `
-                        <div style="background: white; padding: 12px; border-radius: 10px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px;">
-                            <label style="font-weight: 700; color: var(--text); font-size: 0.9em; display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
-                                <span style="font-size: 1.1em;">${m.icon}</span>
-                                <span>${escapeHTML(m.label)}</span>
-                            </label>
-                            <input type="text" id="teach-${m.id}" value="${escapeHTML(valNom)}" placeholder="Nom de l'enseignant" style="padding: 8px; width: 100%; font-size: 0.95em;">
-                        </div>
-                    `;
-                });
+                if (p.matieres && p.matieres.length > 0) {
+                    p.matieres.forEach(m => {
+                        const valNom = equipe[m.id]?.nom || equipe[m.id] || "";
+                        html += `
+                            <div style="background: white; padding: 12px; border-radius: 10px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px;">
+                                <label style="font-weight: 700; color: var(--text); font-size: 0.9em; display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                                    <span style="font-size: 1.1em;">${escapeHTML(m.icon || '📝')}</span>
+                                    <span>${escapeHTML(m.label || 'Matière')}</span>
+                                </label>
+                                <input type="text" id="teach-${m.id}" value="${escapeHTML(valNom)}" placeholder="Nom de l'enseignant" style="padding: 8px; width: 100%; font-size: 0.95em;">
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += `<div style="grid-column: 1/-1; color: #94a3b8; font-style: italic; padding: 10px 0;">Aucune matière dans ce pôle.</div>`;
+                }
 
                 html += `
                         </div>
@@ -5130,15 +5703,170 @@
         }
 
         function sauvegarderEquipe() {
+            polesEquipe = getPolesEquipe();
             let equipe = {};
             polesEquipe.forEach(p => {
-                p.matieres.forEach(m => {
-                    const nom = document.getElementById(`teach-${m.id}`).value.trim();
-                    equipe[m.id] = { nom: nom };
-                });
+                if (p.matieres) {
+                    p.matieres.forEach(m => {
+                        const el = document.getElementById(`teach-${m.id}`);
+                        if (el) {
+                            equipe[m.id] = { nom: el.value.trim() };
+                        }
+                    });
+                }
             });
             localStorage.setItem('pp_teachers_team', JSON.stringify(equipe));
             showModal("Succès", "L'équipe pédagogique a été enregistrée avec succès !");
+        }
+
+        /* --- PARAMÉTRAGE DES PÔLES & MATIÈRES --- */
+        let tempPolesConfig = [];
+
+        function ouvrirModalGestionPoles() {
+            tempPolesConfig = getPolesEquipe();
+            renderModalGestionPoles();
+            const modal = document.getElementById('modal-gestion-poles');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function fermerModalGestionPoles() {
+            const modal = document.getElementById('modal-gestion-poles');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function renderModalGestionPoles() {
+            const container = document.getElementById('modal-gestion-poles-body');
+            if (!container) return;
+
+            let html = "";
+            const colorOptions = [
+                { hex: "#2ecc71", name: "Vert" },
+                { hex: "#3498db", name: "Bleu" },
+                { hex: "#e67e22", name: "Orange" },
+                { hex: "#9b59b6", name: "Violet" },
+                { hex: "#e74c3c", name: "Rouge" },
+                { hex: "#16a085", name: "Teal" },
+                { hex: "#34495e", name: "Gris foncé" }
+            ];
+
+            tempPolesConfig.forEach((p, pIdx) => {
+                let colorsHtml = colorOptions.map(c => `
+                    <option value="${c.hex}" ${p.color === c.hex ? 'selected' : ''}>${c.name}</option>
+                `).join('');
+
+                let matieresHtml = "";
+                if (p.matieres && p.matieres.length > 0) {
+                    matieresHtml = p.matieres.map((m, mIdx) => `
+                        <div style="display:flex; align-items:center; gap:8px; background:white; padding:8px 12px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:6px;">
+                            <input type="text" value="${escapeHTML(m.icon || '📝')}" onchange="updateMatiereConfig(${pIdx}, ${mIdx}, 'icon', this.value)" style="width:45px; text-align:center; padding:6px; font-size:1.1em; border-radius:6px; border:1px solid #cbd5e1;" placeholder="🎨">
+                            <input type="text" value="${escapeHTML(m.label || '')}" onchange="updateMatiereConfig(${pIdx}, ${mIdx}, 'label', this.value)" style="flex:1; padding:6px 10px; font-size:0.95em; border-radius:6px; border:1px solid #cbd5e1;" placeholder="Nom de la matière">
+                            <button class="btn-tiny bg-red" onclick="supprimerMatiereConfig(${pIdx}, ${mIdx})" title="Supprimer la matière" style="padding:4px 8px; font-size:0.85em;">🗑️</button>
+                        </div>
+                    `).join('');
+                } else {
+                    matieresHtml = `<div style="font-style:italic; color:#94a3b8; font-size:0.88em; padding:6px 0;">Aucune matière dans ce pôle.</div>`;
+                }
+
+                html += `
+                    <div style="background:white; border-radius:12px; padding:16px; border:1px solid #cbd5e1; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap; border-bottom:1px dashed #cbd5e1; padding-bottom:10px;">
+                            <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:250px;">
+                                <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:${p.color || '#3498db'};"></span>
+                                <input type="text" value="${escapeHTML(p.nom || '')}" onchange="updatePoleConfig(${pIdx}, 'nom', this.value)" style="font-weight:bold; font-size:1.05em; padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1; flex:1;" placeholder="Nom du pôle">
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <label style="font-size:0.85em; font-weight:600; color:#64748b; margin:0;">Couleur :</label>
+                                <select onchange="updatePoleConfig(${pIdx}, 'color', this.value)" style="padding:6px; font-size:0.88em; border-radius:6px; border:1px solid #cbd5e1; width: auto;">
+                                    ${colorsHtml}
+                                </select>
+                                <button class="btn-tiny bg-red" onclick="supprimerPoleConfig(${pIdx})" style="padding:6px 12px; font-weight:bold;" title="Supprimer tout le pôle">❌ Supprimer le pôle</button>
+                            </div>
+                        </div>
+                        <div style="margin-top:10px;">
+                            <div style="font-size:0.85em; font-weight:700; color:#475569; text-transform:uppercase; margin-bottom:8px;">Disciplines / Matières :</div>
+                            ${matieresHtml}
+                            <button class="btn-tiny btn-blue" onclick="ajouterMatiereConfig(${pIdx})" style="margin-top:8px; padding:6px 12px; font-size:0.88em; font-weight:bold;">
+                                ➕ Ajouter une matière
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updatePoleConfig(pIdx, key, val) {
+            if (tempPolesConfig[pIdx]) {
+                tempPolesConfig[pIdx][key] = val;
+            }
+        }
+
+        function updateMatiereConfig(pIdx, mIdx, key, val) {
+            if (tempPolesConfig[pIdx] && tempPolesConfig[pIdx].matieres && tempPolesConfig[pIdx].matieres[mIdx]) {
+                tempPolesConfig[pIdx].matieres[mIdx][key] = val;
+                if (key === 'label') {
+                    const slug = val.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "_");
+                    tempPolesConfig[pIdx].matieres[mIdx].id = slug || `mat_${pIdx}_${mIdx}`;
+                }
+            }
+        }
+
+        function ajouterPoleConfig() {
+            tempPolesConfig.push({
+                nom: "📌 Nouveau Pôle",
+                color: "#3498db",
+                matieres: [
+                    { id: `mat_${Date.now()}_1`, label: "Nouvelle Discipline", icon: "📝" }
+                ]
+            });
+            renderModalGestionPoles();
+        }
+
+        function supprimerPoleConfig(pIdx) {
+            showConfirm("Confirmation", "Voulez-vous vraiment supprimer ce pôle et ses matières ?", () => {
+                tempPolesConfig.splice(pIdx, 1);
+                renderModalGestionPoles();
+            });
+        }
+
+        function ajouterMatiereConfig(pIdx) {
+            if (!tempPolesConfig[pIdx].matieres) tempPolesConfig[pIdx].matieres = [];
+            const newId = `mat_${Date.now()}`;
+            tempPolesConfig[pIdx].matieres.push({ id: newId, label: "Nouvelle matière", icon: "📝" });
+            renderModalGestionPoles();
+        }
+
+        function supprimerMatiereConfig(pIdx, mIdx) {
+            tempPolesConfig[pIdx].matieres.splice(mIdx, 1);
+            renderModalGestionPoles();
+        }
+
+        function reinitialiserPolesDefault() {
+            showConfirm("Réinitialisation", "Voulez-vous rétablir la configuration des pôles et matières par défaut ?", () => {
+                tempPolesConfig = JSON.parse(JSON.stringify(defaultPolesEquipe));
+                renderModalGestionPoles();
+            });
+        }
+
+        function sauvegarderGestionPoles() {
+            tempPolesConfig.forEach((p, pIdx) => {
+                p.nom = (p.nom || `Pôle ${pIdx + 1}`).trim();
+                if (p.matieres) {
+                    p.matieres.forEach((m, mIdx) => {
+                        m.label = (m.label || `Matière ${mIdx + 1}`).trim();
+                        if (!m.id) {
+                            m.id = m.label.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "_") || `mat_${pIdx}_${mIdx}`;
+                        }
+                    });
+                }
+            });
+
+            localStorage.setItem('pp_custom_poles_equipe', JSON.stringify(tempPolesConfig));
+            polesEquipe = getPolesEquipe();
+            fermerModalGestionPoles();
+            initEquipeSection();
+            showModal("Succès", "La structure des pôles et matières a été mise à jour !");
         }
 
         function ouvrirGestionBinomes() {
