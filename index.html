@@ -8,9 +8,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Carnet PP">
-    <link rel="icon" type="image/jpeg" href="arriere_plan.jpg">
-    <link rel="shortcut icon" type="image/jpeg" href="arriere_plan.jpg">
-    <link rel="apple-touch-icon" href="arriere_plan.jpg">
+    <link rel="icon" type="image/png" href="Arrière_plan V2.png">
+    <link rel="shortcut icon" type="image/png" href="Arrière_plan V2.png">
+    <link rel="apple-touch-icon" href="Arrière_plan V2.png">
     <meta name="description"
         content="Carnet de Bord numérique pour Professeur Principal - Suivi d'élèves, résultats, orientation et journal disciplinaire.">
     <meta name="theme-color" content="#2c3e50">
@@ -88,7 +88,7 @@
             bottom: -20px;
             z-index: -100;
             pointer-events: none;
-            background-image: url('arriere_plan.jpg');
+            background-image: url('Arrière_plan V2.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -262,6 +262,15 @@
             font-size: 16px;
             transition: border-color 0.3s;
             box-sizing: border-box;
+        }
+
+        input[type="radio"],
+        input[type="checkbox"] {
+            width: auto !important;
+            padding: 0 !important;
+            border: initial !important;
+            border-radius: initial !important;
+            box-shadow: none !important;
         }
 
         input:focus,
@@ -1569,6 +1578,10 @@
             <!-- Actions secondaires (Administration) -->
             <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; max-width: 900px;">
                 <button class="btn-home"
+                    style="width:auto; height:auto; padding: 12px 25px; font-size:0.95rem; display:inline-flex; align-items: center; gap: 8px; background-color: #e0f2fe; color: #0369a1; border: 1px solid rgba(3, 105, 161, 0.25); font-weight: bold; border-radius: 10px; box-shadow: 0 2px 8px rgba(3, 105, 161, 0.15);"
+                    onclick="ouvrirModalArchivage()">📦 Archiver l'année</button>
+
+                <button class="btn-home"
                     style="width:auto; height:auto; padding: 12px 25px; font-size:0.95rem; display:inline-flex; align-items: center; gap: 8px; background-color: #fffde7; color: #f39c12; border: 1px solid rgba(243, 156, 18, 0.2); font-weight: bold; border-radius: 10px;"
                     onclick="telechargerSauvegarde()">💾 Exporter JSON</button>
 
@@ -2150,6 +2163,101 @@
         </div>
     </div>
 
+    <!-- MODAL ARCHIVAGE FIN D'ANNÉE -->
+    <div id="modal-archivage"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2500; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+        <div
+            style="background:var(--card-bg, #ffffff); width:95%; max-width:650px; border-radius:18px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 15px 40px rgba(0,0,0,0.3); border: 1px solid var(--border);">
+            <!-- Header -->
+            <div
+                style="padding:18px 25px; background:linear-gradient(135deg, #0284c7, #0369a1); color:white; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <span style="font-size:1.6em;">📦</span>
+                    <div>
+                        <h3 style="margin:0; font-size:1.25em; font-weight:700; color:white;">Archivage de fin d'année</h3>
+                        <p style="margin:2px 0 0 0; font-size:0.85em; opacity:0.9; color:white;">Sauvegarde complète et préparation de la rentrée</p>
+                    </div>
+                </div>
+                <button onclick="fermerModalArchivage()"
+                    style="background:none; border:none; color:white; font-size:2.2em; cursor:pointer; line-height:1; padding:0 5px;">&times;</button>
+            </div>
+            <!-- Body -->
+            <div style="padding:25px; overflow-y:auto; max-height:75vh; color:var(--text);">
+                <!-- Année Scolaire -->
+                <div style="margin-bottom:20px; background:var(--bg, #f8fafc); padding:15px; border-radius:12px; border:1px solid var(--border);">
+                    <label style="font-weight:bold; font-size:0.95em; display:block; margin-bottom:6px;">📅 Année scolaire à archiver :</label>
+                    <input type="text" id="archive-annee-input" style="width:100%; padding:10px 14px; font-size:1em; border-radius:8px; border:1px solid var(--border); font-weight:600; background:var(--card-bg); color:var(--text);" placeholder="ex: 2025-2026">
+                </div>
+
+                <!-- Résumé des données -->
+                <div style="margin-bottom:25px;">
+                    <h4 style="margin:0 0 10px 0; font-size:0.95em; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary);">Données incluses dans l'archive :</h4>
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; text-align:center;">
+                        <div style="background:var(--bg, #f1f5f9); padding:12px 8px; border-radius:10px;">
+                            <span style="font-size:1.4em; display:block;">🎓</span>
+                            <strong id="archive-stat-eleves" style="font-size:1.1em; color:var(--accent);">0</strong>
+                            <span style="font-size:0.78em; display:block; color:var(--text-secondary);">Élèves</span>
+                        </div>
+                        <div style="background:var(--bg, #f1f5f9); padding:12px 8px; border-radius:10px;">
+                            <span style="font-size:1.4em; display:block;">📌</span>
+                            <strong id="archive-stat-notes" style="font-size:1.1em; color:var(--warning);">0</strong>
+                            <span style="font-size:0.78em; display:block; color:var(--text-secondary);">Notes & Rappels</span>
+                        </div>
+                        <div style="background:var(--bg, #f1f5f9); padding:12px 8px; border-radius:10px;">
+                            <span style="font-size:1.4em; display:block;">💬</span>
+                            <strong id="archive-stat-hvc" style="font-size:1.1em; color:var(--success);">0</strong>
+                            <span style="font-size:0.78em; display:block; color:var(--text-secondary);">Séances HVC</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Options après archivage -->
+                <div style="margin-bottom:20px;">
+                    <h4 style="margin:0 0 12px 0; font-size:0.95em; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary);">🎯 Que souhaitez-vous faire de votre carnet actuel ?</h4>
+                    
+                    <div style="display:flex; flex-direction:column; gap:14px; width:100%;">
+                        <!-- Option 1 : Conserver le carnet intact -->
+                        <label style="display:flex; align-items:flex-start; gap:14px; padding:16px; border:2px solid var(--border); border-radius:14px; cursor:pointer; background:var(--card-bg); width:100%; box-sizing:border-box;" id="label-opt-download">
+                            <input type="radio" name="archive-action-mode" value="download_only" checked style="width:20px !important; height:20px !important; margin-top:2px; flex-shrink:0; cursor:pointer;">
+                            <div style="flex:1; width:100%;">
+                                <strong style="display:block; font-size:0.98em; color:var(--text); line-height:1.3;">📁 Conserver le carnet intact (Sauvegarde seule)</strong>
+                                <span style="font-size:0.85em; color:var(--text-secondary); display:block; margin-top:5px; line-height:1.45;">Télécharge le fichier d'archive sur votre ordinateur. Votre carnet reste exactement comme il est aujourd'hui (aucune suppression).</span>
+                            </div>
+                        </label>
+
+                        <!-- Option 2 : Garder les élèves, vider les résultats -->
+                        <label style="display:flex; align-items:flex-start; gap:14px; padding:16px; border:2px solid var(--border); border-radius:14px; cursor:pointer; background:var(--card-bg); width:100%; box-sizing:border-box;" id="label-opt-results">
+                            <input type="radio" name="archive-action-mode" value="reset_results_only" style="width:20px !important; height:20px !important; margin-top:2px; flex-shrink:0; cursor:pointer;">
+                            <div style="flex:1; width:100%;">
+                                <strong style="display:block; font-size:0.98em; color:#d97706; line-height:1.3;">🔄 Garder la liste d'élèves pour l'an prochain (Vider notes & bulletins)</strong>
+                                <span style="font-size:0.85em; color:var(--text-secondary); display:block; margin-top:5px; line-height:1.45;">Conservation des fiches et coordonnées d'élèves. Seuls leurs notes, appréciations, punitions, HVC et rappels de cette année sont effacés.</span>
+                            </div>
+                        </label>
+
+                        <!-- Option 3 : Tout réinitialiser pour nouvelle classe -->
+                        <label style="display:flex; align-items:flex-start; gap:14px; padding:16px; border:2px solid var(--border); border-radius:14px; cursor:pointer; background:var(--card-bg); width:100%; box-sizing:border-box;" id="label-opt-full">
+                            <input type="radio" name="archive-action-mode" value="full_reset" style="width:20px !important; height:20px !important; margin-top:2px; flex-shrink:0; cursor:pointer;">
+                            <div style="flex:1; width:100%;">
+                                <strong style="display:block; font-size:0.98em; color:#dc2626; line-height:1.3;">🧹 Préparer la rentrée pour une nouvelle classe (Remise à zéro complète)</strong>
+                                <span style="font-size:0.85em; color:var(--text-secondary); display:block; margin-top:5px; line-height:1.45;">Pour changer de classe à la rentrée : l'année écoulée est sauvegardée dans le fichier d'archive, puis le carnet est entièrement vidé.</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:12px 15px; border-radius:10px; font-size:0.85em; color:#1e40af; display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:1.3em;">🛡️</span>
+                    <span><b>Sécurité garantie</b> : Un fichier `.json` contenant l'intégralité de vos données sera automatiquement téléchargé sur votre ordinateur avant tout nettoyage.</span>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div style="padding:15px 25px; background:var(--bg, #f8fafc); border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn-red" onclick="fermerModalArchivage()" style="padding:10px 20px; font-size:0.95em; border-radius:8px;">Annuler</button>
+                <button class="btn-green" onclick="validerArchivageAnnee()" style="padding:10px 24px; font-size:0.95em; border-radius:8px; font-weight:bold; background:linear-gradient(135deg, #0284c7, #0369a1); border:none; color:white;">📦 Valider l'archivage</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let eleves = JSON.parse(localStorage.getItem('pp_data')) || [];
         let notesRappels = JSON.parse(localStorage.getItem('pp_notes_rappels')) || [];
@@ -2248,12 +2356,12 @@
                     ? (isHomeOrChoice ? 'rgba(0,0,0,0.7), rgba(0,0,0,0.7)' : 'rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.75)')
                     : (isHomeOrChoice ? 'rgba(255,255,255,0), rgba(255,255,255,0)' : 'rgba(244, 247, 246, 0.45), rgba(244, 247, 246, 0.45)');
 
-                bgOverlay.style.backgroundImage = `linear-gradient(${overlayColor}), url('arriere_plan.jpg?t=${new Date().getTime()}')`;
+                bgOverlay.style.backgroundImage = `linear-gradient(${overlayColor}), url('Arrière_plan V2.png?t=${new Date().getTime()}')`;
 
                 if (isHomeOrChoice) {
                     bgOverlay.classList.remove('blurred');
                 } else {
-                    // Partie Élève & autres pages : fond d'écran arriere_plan.jpg flouté
+                    // Partie Élève & autres pages : fond d'écran Arrière_plan V2.png flouté
                     bgOverlay.classList.add('blurred');
                 }
             }
@@ -5024,6 +5132,154 @@
                 }
             };
             reader.readAsText(event.target.files[0]);
+        }
+
+        /* --- ARCHIVAGE FIN D'ANNÉE --- */
+        function ouvrirModalArchivage() {
+            try {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth(); // 0 = Janvier, 7 = Août
+                let anneeScolaire = "";
+                if (month >= 7) {
+                    anneeScolaire = `${year}-${year + 1}`;
+                } else {
+                    anneeScolaire = `${year - 1}-${year}`;
+                }
+
+                const inputEl = document.getElementById('archive-annee-input');
+                if (inputEl) inputEl.value = anneeScolaire;
+
+                const countEleves = (typeof eleves !== 'undefined' && eleves) ? eleves.length : 0;
+                const countNotes = (typeof notesRappels !== 'undefined' && notesRappels) ? notesRappels.length : 0;
+                let countHvc = 0;
+                try {
+                    const hvcRaw = localStorage.getItem('pp_hvc_seances');
+                    if (hvcRaw) countHvc = JSON.parse(hvcRaw).length;
+                } catch(e){}
+
+                const elEleves = document.getElementById('archive-stat-eleves');
+                if (elEleves) elEleves.textContent = countEleves;
+
+                const elNotes = document.getElementById('archive-stat-notes');
+                if (elNotes) elNotes.textContent = countNotes;
+
+                const elHvc = document.getElementById('archive-stat-hvc');
+                if (elHvc) elHvc.textContent = countHvc;
+
+                const modal = document.getElementById('modal-archivage');
+                if (modal) {
+                    modal.style.display = 'flex';
+                }
+            } catch (err) {
+                console.error("Erreur ouverture modal archivage:", err);
+            }
+        }
+
+        function fermerModalArchivage() {
+            document.getElementById('modal-archivage').style.display = 'none';
+        }
+
+        async function validerArchivageAnnee() {
+            const anneeInput = document.getElementById('archive-annee-input').value.trim() || 'Annee';
+            const selectedMode = document.querySelector('input[name="archive-action-mode"]:checked')?.value || 'download_only';
+
+            const cleanAnnee = anneeInput.replace(/[^a-zA-Z0-9_-]/g, '_');
+            const fileName = `Archive_Carnet_PP_${cleanAnnee}.json`;
+
+            // 1. Synchronisation préalable
+            sauvegarder();
+            if (typeof sauvegarderNotes === 'function') sauvegarderNotes();
+
+            // 2. Format du payload
+            const backupNotesStr = localStorage.getItem('pp_notes_rappels') || '[]';
+            const backupDataStr = localStorage.getItem('pp_data') || '[]';
+
+            const backupPayload = {
+                signature: "CarnetDeBord_PP_FULL_BACKUP",
+                archiveType: "ARCHIVE_ANNEE_SCOLAIRE",
+                anneeScolaire: anneeInput,
+                version: "4.2",
+                exportDate: new Date().toISOString(),
+                eleves: JSON.parse(backupDataStr),
+                notesRappels: JSON.parse(backupNotesStr),
+                raw_ls: {}
+            };
+
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('pp_')) {
+                    backupPayload.raw_ls[key] = localStorage.getItem(key);
+                }
+            });
+
+            const jsonString = JSON.stringify(backupPayload, null, 2);
+
+            // 3. Téléchargement du fichier
+            let downloadSuccess = false;
+            if ('showSaveFilePicker' in window) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: fileName,
+                        types: [{
+                            description: 'Archive Carnet PP (.json)',
+                            accept: { 'application/json': ['.json'] },
+                        }],
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(jsonString);
+                    await writable.close();
+                    downloadSuccess = true;
+                } catch (err) {
+                    if (err.name === 'AbortError') return;
+                }
+            }
+
+            if (!downloadSuccess) {
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            fermerModalArchivage();
+
+            // 4. Action post-export
+            if (selectedMode === 'download_only') {
+                showModal("Archivage Téléchargé", `📦 L'archive <b>${escapeHTML(fileName)}</b> a été téléchargée avec succès.<br><br>Toutes vos données sont conservées intactes dans l'application.`);
+            } else if (selectedMode === 'reset_results_only') {
+                showConfirm("Nettoyage pour la rentrée", "L'archive a bien été téléchargée sur votre appareil.<br><br>Voulez-vous réinitialiser les résultats et notes tout en <b>conservant la liste des élèves</b> ?", () => {
+                    eleves.forEach(e => {
+                        e.resultats = {
+                            T1: { moyenneG: "", abs: 0, retards: 0, notes: {}, punitions: {}, historique: [] },
+                            T2: { moyenneG: "", abs: 0, retards: 0, notes: {}, punitions: {}, historique: [] },
+                            T3: { moyenneG: "", abs: 0, retards: 0, notes: {}, punitions: {}, historique: [] }
+                        };
+                        if (e.orientation) {
+                            e.orientation = { p1: { statut: "", notes: "" }, p2: { vœux: [], avis: "" }, p3: { affectation: "", decision: "" } };
+                        }
+                    });
+                    sauvegarder();
+                    localStorage.removeItem('pp_notes_rappels');
+                    localStorage.removeItem('pp_hvc_seances');
+                    showModal("Rentrée Préparée", "Les résultats et notes ont été réinitialisés. La liste des élèves et leurs coordonnées sont conservées.", [{
+                        text: "Continuer",
+                        cls: 'btn-green',
+                        onclick: () => location.reload()
+                    }]);
+                });
+            } else if (selectedMode === 'full_reset') {
+                showConfirm("Réinitialisation Nouvelle Classe", "L'archive a bien été téléchargée sur votre appareil.<br><br>Voulez-vous vraiment <b>effacer toutes les données et la liste des élèves</b> pour démarrer une nouvelle classe à zéro ?", () => {
+                    localStorage.clear();
+                    showModal("Application Réinitialisée", "Carnet vierge prêt pour la nouvelle année scolaire.", [{
+                        text: "Démarrer",
+                        cls: 'btn-green',
+                        onclick: () => location.reload()
+                    }]);
+                });
+            }
         }
 
         function supprimerTousResultats() {
