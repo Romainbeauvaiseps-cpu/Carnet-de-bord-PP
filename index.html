@@ -251,17 +251,40 @@
             color: var(--primary-light);
         }
 
-        input,
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        input[type="email"],
+        input[type="password"],
         select,
         textarea {
             width: 100%;
-            padding: 12px;
+            padding: 12px 14px;
             border: 2px solid var(--border);
             border-radius: 12px;
-            /* Arrondi input */
-            font-size: 16px;
-            transition: border-color 0.3s;
+            font-size: 15px;
+            font-family: inherit;
+            color: var(--text);
+            background-color: var(--card-bg, #ffffff);
+            transition: border-color 0.3s, box-shadow 0.3s;
             box-sizing: border-box;
+        }
+
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%20viewBox%3D%220%200%20292.4%20292.4%22%3E%3Cpath%20fill%3D%22%233498db%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 12px auto;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+
+        select option {
+            background-color: var(--card-bg, #ffffff);
+            color: var(--text);
         }
 
         input[type="radio"],
@@ -278,6 +301,7 @@
         textarea:focus {
             border-color: var(--accent);
             outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
         }
 
         /* PLAN DE CLASSE / LISTE ELEVES */
@@ -1063,43 +1087,17 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
-        /* START: MODERNIZED DROPDOWNS & FILE INPUTS (User Request) */
+        /* START: MODERNIZED DROPDOWNS & FILE INPUTS */
 
-        /* Cible les listes déroulantes spécifiques demandées */
         #comp-form-container select,
         #import-trimestre {
-            appearance: none;
-            -webkit-appearance: none;
-            background-color: white;
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%20viewBox%3D%220%200%20292.4%20292.4%22%3E%3Cpath%20fill%3D%22%233498db%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right 20px center;
-            background-size: 15px auto;
-            padding: 15px 50px 15px 25px;
-            /* Padding droit pour la flèche */
-            border-radius: 30px;
-            border: 2px solid var(--accent);
-            font-size: 1.1em;
-            color: var(--primary);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-            cursor: pointer;
             width: 100%;
             max-width: 400px;
-            /* Limite largeur pour l'esthétique */
         }
 
         #comp-form-container select:hover,
         #import-trimestre:hover {
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
             border-color: var(--accent-hover);
-        }
-
-        #comp-form-container select:focus,
-        #import-trimestre:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
         }
 
         /* Modernize File Input Button */
@@ -1583,11 +1581,11 @@
 
                 <button class="btn-home"
                     style="width:auto; height:auto; padding: 12px 25px; font-size:0.95rem; display:inline-flex; align-items: center; gap: 8px; background-color: #fffde7; color: #f39c12; border: 1px solid rgba(243, 156, 18, 0.2); font-weight: bold; border-radius: 10px;"
-                    onclick="telechargerSauvegarde()">💾 Exporter JSON</button>
+                    onclick="telechargerSauvegarde()">💾 Sauvegarder</button>
 
                 <button class="btn-home bg-pale-blue"
                     style="width:auto; height:auto; padding: 12px 25px; font-size:0.95rem; display:inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(52, 152, 219, 0.2); font-weight: bold; border-radius: 10px;"
-                    onclick="document.getElementById('file-json').click()">📂 Charger JSON</button>
+                    onclick="document.getElementById('file-json').click()">📂 Charger</button>
                 <input type="file" id="file-json" style="display:none" onchange="chargerFichierJSON(event)">
 
                 <button class="btn-home"
@@ -1770,8 +1768,23 @@
                     <option value="Fille">Fille</option>
                 </select>
             </div>
-            <div class="form-group"><label>LV1</label><input type="text" id="ins-lv1"></div>
-            <div class="form-group"><label>LV2</label><input type="text" id="ins-lv2"></div>
+            <div class="form-group"><label>LV1</label><input type="text" id="ins-lv1"
+                    placeholder="ex: Anglais, Allemand"></div>
+            <div class="form-group"><label>LV2</label><input type="text" id="ins-lv2"
+                    placeholder="ex: Espagnol, Italien"></div>
+            <div class="form-group"><label>Option 1</label><input type="text" id="ins-opt1"
+                    placeholder="ex: Section Sportive, Orchestre, Latin"></div>
+            <div class="form-group"><label>Option 2</label><input type="text" id="ins-opt2"
+                    placeholder="ex: Latin, Grevisse..."></div>
+            <div class="form-group">
+                <label>Régime</label>
+                <select id="ins-regime">
+                    <option value="">-- Sélectionner --</option>
+                    <option value="Demi-pensionnaire">Demi-pensionnaire</option>
+                    <option value="Externe">Externe</option>
+                    <option value="Interne">Interne</option>
+                </select>
+            </div>
         </div>
         <button class="btn-green" onclick="ajouterEleve()">Enregistrer l'élève</button>
     </div>
@@ -1780,9 +1793,13 @@
     <div id="section-import-eleves" class="section">
         <button onclick="showSection('section-liste')" style="margin-bottom: 20px;">← Retour</button>
         <h2>Import Élèves (CSV)</h2>
-        <p>Format attendu (avec entête) : <code>Nom;Prénom;DDN;Sexe;LV1;LV2</code></p>
-        <p><small>(Note : Indiquez <b>G</b> pour Garçon ou <b>F</b> pour Fille dans la colonne Sexe)</small></p>
-        <div style="border: 2px dashed var(--accent); padding: 30px; text-align: center;">
+        <p>L'application s'adapte automatiquement à la structure de votre fichier CSV en détectant les en-têtes (Nom,
+            Prénom, Nom & Prénom, Date de naissance/DDN, Sexe/Genre, LV1, LV2...).</p>
+        <p><small>💡 <i>Remarque : Si une colonne rassemble le Nom et le Prénom (ex: "DUPONT Jean"), ils seront
+                    automatiquement séparés. Séparateurs <b>;</b>, <b>,</b> ou <b>Tabulation</b> supportés.</i></small>
+        </p>
+        <div
+            style="border: 2px dashed var(--accent); padding: 30px; text-align: center; border-radius: 8px; margin-top: 15px;">
             <input type="file" id="csv-eleves-file" accept=".csv">
             <button class="btn-green" onclick="importerElevesCSV()">Importer</button>
         </div>
@@ -1850,6 +1867,11 @@
                         <div><strong style="color: var(--primary);">🧬 Sexe :</strong> <span id="info-sexe"></span>
                         </div>
                         <div><strong style="color: var(--primary);">🗣️ LV1 / LV2 :</strong> <span id="info-lvs"></span>
+                        </div>
+                        <div><strong style="color: var(--primary);">🎨 Options :</strong> <span
+                                id="info-options"></span>
+                        </div>
+                        <div><strong style="color: var(--primary);">🍽️ Régime :</strong> <span id="info-regime"></span>
                         </div>
                         <div><strong style="color: var(--primary);">👥 Binômes d'absence :</strong>
                             <div id="info-binomes" style="margin-top: 4px; font-weight: 600; font-size: 0.95em;"></div>
@@ -2174,8 +2196,10 @@
                 <div style="display:flex; align-items:center; gap:12px;">
                     <span style="font-size:1.6em;">📦</span>
                     <div>
-                        <h3 style="margin:0; font-size:1.25em; font-weight:700; color:white;">Archivage de fin d'année</h3>
-                        <p style="margin:2px 0 0 0; font-size:0.85em; opacity:0.9; color:white;">Sauvegarde complète et préparation de la rentrée</p>
+                        <h3 style="margin:0; font-size:1.25em; font-weight:700; color:white;">Archivage de fin d'année
+                        </h3>
+                        <p style="margin:2px 0 0 0; font-size:0.85em; opacity:0.9; color:white;">Sauvegarde complète et
+                            préparation de la rentrée</p>
                     </div>
                 </div>
                 <button onclick="fermerModalArchivage()"
@@ -2184,14 +2208,20 @@
             <!-- Body -->
             <div style="padding:25px; overflow-y:auto; max-height:75vh; color:var(--text);">
                 <!-- Année Scolaire -->
-                <div style="margin-bottom:20px; background:var(--bg, #f8fafc); padding:15px; border-radius:12px; border:1px solid var(--border);">
-                    <label style="font-weight:bold; font-size:0.95em; display:block; margin-bottom:6px;">📅 Année scolaire à archiver :</label>
-                    <input type="text" id="archive-annee-input" style="width:100%; padding:10px 14px; font-size:1em; border-radius:8px; border:1px solid var(--border); font-weight:600; background:var(--card-bg); color:var(--text);" placeholder="ex: 2025-2026">
+                <div
+                    style="margin-bottom:20px; background:var(--bg, #f8fafc); padding:15px; border-radius:12px; border:1px solid var(--border);">
+                    <label style="font-weight:bold; font-size:0.95em; display:block; margin-bottom:6px;">📅 Année
+                        scolaire à archiver :</label>
+                    <input type="text" id="archive-annee-input"
+                        style="width:100%; padding:10px 14px; font-size:1em; border-radius:8px; border:1px solid var(--border); font-weight:600; background:var(--card-bg); color:var(--text);"
+                        placeholder="ex: 2025-2026">
                 </div>
 
                 <!-- Résumé des données -->
                 <div style="margin-bottom:25px;">
-                    <h4 style="margin:0 0 10px 0; font-size:0.95em; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary);">Données incluses dans l'archive :</h4>
+                    <h4
+                        style="margin:0 0 10px 0; font-size:0.95em; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary);">
+                        Données incluses dans l'archive :</h4>
                     <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; text-align:center;">
                         <div style="background:var(--bg, #f1f5f9); padding:12px 8px; border-radius:10px;">
                             <span style="font-size:1.4em; display:block;">🎓</span>
@@ -2201,59 +2231,90 @@
                         <div style="background:var(--bg, #f1f5f9); padding:12px 8px; border-radius:10px;">
                             <span style="font-size:1.4em; display:block;">📌</span>
                             <strong id="archive-stat-notes" style="font-size:1.1em; color:var(--warning);">0</strong>
-                            <span style="font-size:0.78em; display:block; color:var(--text-secondary);">Notes & Rappels</span>
+                            <span style="font-size:0.78em; display:block; color:var(--text-secondary);">Notes &
+                                Rappels</span>
                         </div>
                         <div style="background:var(--bg, #f1f5f9); padding:12px 8px; border-radius:10px;">
                             <span style="font-size:1.4em; display:block;">💬</span>
                             <strong id="archive-stat-hvc" style="font-size:1.1em; color:var(--success);">0</strong>
-                            <span style="font-size:0.78em; display:block; color:var(--text-secondary);">Séances HVC</span>
+                            <span style="font-size:0.78em; display:block; color:var(--text-secondary);">Séances
+                                HVC</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Options après archivage -->
                 <div style="margin-bottom:20px;">
-                    <h4 style="margin:0 0 12px 0; font-size:0.95em; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary);">🎯 Que souhaitez-vous faire de votre carnet actuel ?</h4>
-                    
+                    <h4
+                        style="margin:0 0 12px 0; font-size:0.95em; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary);">
+                        🎯 Que souhaitez-vous faire de votre carnet actuel ?</h4>
+
                     <div style="display:flex; flex-direction:column; gap:14px; width:100%;">
                         <!-- Option 1 : Conserver le carnet intact -->
-                        <label style="display:flex; align-items:flex-start; gap:14px; padding:16px; border:2px solid var(--border); border-radius:14px; cursor:pointer; background:var(--card-bg); width:100%; box-sizing:border-box;" id="label-opt-download">
-                            <input type="radio" name="archive-action-mode" value="download_only" checked style="width:20px !important; height:20px !important; margin-top:2px; flex-shrink:0; cursor:pointer;">
+                        <label
+                            style="display:flex; align-items:flex-start; gap:14px; padding:16px; border:2px solid var(--border); border-radius:14px; cursor:pointer; background:var(--card-bg); width:100%; box-sizing:border-box;"
+                            id="label-opt-download">
+                            <input type="radio" name="archive-action-mode" value="download_only" checked
+                                style="width:20px !important; height:20px !important; margin-top:2px; flex-shrink:0; cursor:pointer;">
                             <div style="flex:1; width:100%;">
-                                <strong style="display:block; font-size:0.98em; color:var(--text); line-height:1.3;">📁 Conserver le carnet intact (Sauvegarde seule)</strong>
-                                <span style="font-size:0.85em; color:var(--text-secondary); display:block; margin-top:5px; line-height:1.45;">Télécharge le fichier d'archive sur votre ordinateur. Votre carnet reste exactement comme il est aujourd'hui (aucune suppression).</span>
+                                <strong style="display:block; font-size:0.98em; color:var(--text); line-height:1.3;">📁
+                                    Conserver le carnet intact (Sauvegarde seule)</strong>
+                                <span
+                                    style="font-size:0.85em; color:var(--text-secondary); display:block; margin-top:5px; line-height:1.45;">Télécharge
+                                    le fichier d'archive sur votre ordinateur. Votre carnet reste exactement comme il
+                                    est aujourd'hui (aucune suppression).</span>
                             </div>
                         </label>
 
                         <!-- Option 2 : Garder les élèves, vider les résultats -->
-                        <label style="display:flex; align-items:flex-start; gap:14px; padding:16px; border:2px solid var(--border); border-radius:14px; cursor:pointer; background:var(--card-bg); width:100%; box-sizing:border-box;" id="label-opt-results">
-                            <input type="radio" name="archive-action-mode" value="reset_results_only" style="width:20px !important; height:20px !important; margin-top:2px; flex-shrink:0; cursor:pointer;">
+                        <label
+                            style="display:flex; align-items:flex-start; gap:14px; padding:16px; border:2px solid var(--border); border-radius:14px; cursor:pointer; background:var(--card-bg); width:100%; box-sizing:border-box;"
+                            id="label-opt-results">
+                            <input type="radio" name="archive-action-mode" value="reset_results_only"
+                                style="width:20px !important; height:20px !important; margin-top:2px; flex-shrink:0; cursor:pointer;">
                             <div style="flex:1; width:100%;">
-                                <strong style="display:block; font-size:0.98em; color:#d97706; line-height:1.3;">🔄 Garder la liste d'élèves pour l'an prochain (Vider notes & bulletins)</strong>
-                                <span style="font-size:0.85em; color:var(--text-secondary); display:block; margin-top:5px; line-height:1.45;">Conservation des fiches et coordonnées d'élèves. Seuls leurs notes, appréciations, punitions, HVC et rappels de cette année sont effacés.</span>
+                                <strong style="display:block; font-size:0.98em; color:#d97706; line-height:1.3;">🔄
+                                    Garder la liste d'élèves pour l'an prochain (Vider notes & bulletins)</strong>
+                                <span
+                                    style="font-size:0.85em; color:var(--text-secondary); display:block; margin-top:5px; line-height:1.45;">Conservation
+                                    des fiches et coordonnées d'élèves. Seuls leurs notes, appréciations, punitions, HVC
+                                    et rappels de cette année sont effacés.</span>
                             </div>
                         </label>
 
                         <!-- Option 3 : Tout réinitialiser pour nouvelle classe -->
-                        <label style="display:flex; align-items:flex-start; gap:14px; padding:16px; border:2px solid var(--border); border-radius:14px; cursor:pointer; background:var(--card-bg); width:100%; box-sizing:border-box;" id="label-opt-full">
-                            <input type="radio" name="archive-action-mode" value="full_reset" style="width:20px !important; height:20px !important; margin-top:2px; flex-shrink:0; cursor:pointer;">
+                        <label
+                            style="display:flex; align-items:flex-start; gap:14px; padding:16px; border:2px solid var(--border); border-radius:14px; cursor:pointer; background:var(--card-bg); width:100%; box-sizing:border-box;"
+                            id="label-opt-full">
+                            <input type="radio" name="archive-action-mode" value="full_reset"
+                                style="width:20px !important; height:20px !important; margin-top:2px; flex-shrink:0; cursor:pointer;">
                             <div style="flex:1; width:100%;">
-                                <strong style="display:block; font-size:0.98em; color:#dc2626; line-height:1.3;">🧹 Préparer la rentrée pour une nouvelle classe (Remise à zéro complète)</strong>
-                                <span style="font-size:0.85em; color:var(--text-secondary); display:block; margin-top:5px; line-height:1.45;">Pour changer de classe à la rentrée : l'année écoulée est sauvegardée dans le fichier d'archive, puis le carnet est entièrement vidé.</span>
+                                <strong style="display:block; font-size:0.98em; color:#dc2626; line-height:1.3;">🧹
+                                    Préparer la rentrée pour une nouvelle classe (Remise à zéro complète)</strong>
+                                <span
+                                    style="font-size:0.85em; color:var(--text-secondary); display:block; margin-top:5px; line-height:1.45;">Pour
+                                    changer de classe à la rentrée : l'année écoulée est sauvegardée dans le fichier
+                                    d'archive, puis le carnet est entièrement vidé.</span>
                             </div>
                         </label>
                     </div>
                 </div>
 
-                <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:12px 15px; border-radius:10px; font-size:0.85em; color:#1e40af; display:flex; align-items:center; gap:10px;">
+                <div
+                    style="background:#eff6ff; border:1px solid #bfdbfe; padding:12px 15px; border-radius:10px; font-size:0.85em; color:#1e40af; display:flex; align-items:center; gap:10px;">
                     <span style="font-size:1.3em;">🛡️</span>
-                    <span><b>Sécurité garantie</b> : Un fichier `.json` contenant l'intégralité de vos données sera automatiquement téléchargé sur votre ordinateur avant tout nettoyage.</span>
+                    <span><b>Sécurité garantie</b> : Un fichier `.json` contenant l'intégralité de vos données sera
+                        automatiquement téléchargé sur votre ordinateur avant tout nettoyage.</span>
                 </div>
             </div>
             <!-- Footer -->
-            <div style="padding:15px 25px; background:var(--bg, #f8fafc); border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px;">
-                <button class="btn-red" onclick="fermerModalArchivage()" style="padding:10px 20px; font-size:0.95em; border-radius:8px;">Annuler</button>
-                <button class="btn-green" onclick="validerArchivageAnnee()" style="padding:10px 24px; font-size:0.95em; border-radius:8px; font-weight:bold; background:linear-gradient(135deg, #0284c7, #0369a1); border:none; color:white;">📦 Valider l'archivage</button>
+            <div
+                style="padding:15px 25px; background:var(--bg, #f8fafc); border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn-red" onclick="fermerModalArchivage()"
+                    style="padding:10px 20px; font-size:0.95em; border-radius:8px;">Annuler</button>
+                <button class="btn-green" onclick="validerArchivageAnnee()"
+                    style="padding:10px 24px; font-size:0.95em; border-radius:8px; font-weight:bold; background:linear-gradient(135deg, #0284c7, #0369a1); border:none; color:white;">📦
+                    Valider l'archivage</button>
             </div>
         </div>
     </div>
@@ -2401,8 +2462,9 @@
                     dob: document.getElementById('ins-dob').value,
                     lv1: document.getElementById('ins-lv1').value,
                     lv2: document.getElementById('ins-lv2').value,
-                    opt1: "",
-                    opt2: "",
+                    opt1: document.getElementById('ins-opt1').value,
+                    opt2: document.getElementById('ins-opt2').value,
+                    regime: document.getElementById('ins-regime').value,
                     disp: ""
                 },
                 observations: "",
@@ -2425,48 +2487,347 @@
             }]);
         }
 
+        // Helper pour parser une ligne CSV en gérant les guillemets
+        function parseCSVLine(line, delimiter) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    if (inQuotes && line[i + 1] === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === delimiter && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        }
+
+        // Helper pour détecter le délimiteur du CSV
+        function detectCSVDelimiter(lines) {
+            const sampleLines = lines.slice(0, 10);
+            let semiCount = 0;
+            let commaCount = 0;
+            let tabCount = 0;
+            sampleLines.forEach(l => {
+                semiCount += (l.match(/;/g) || []).length;
+                commaCount += (l.match(/,/g) || []).length;
+                tabCount += (l.match(/\t/g) || []).length;
+            });
+            if (tabCount > semiCount && tabCount > commaCount) return '\t';
+            if (commaCount > semiCount) return ',';
+            return ';';
+        }
+
+        // Helper pour formater la date en YYYY-MM-DD
+        function parseAndFormatDate(raw) {
+            if (!raw) return "";
+            let cleaned = raw.trim();
+            let dParts = cleaned.split(/[\/\.-]/);
+            if (dParts.length === 3) {
+                let p1 = parseInt(dParts[0], 10);
+                let p2 = parseInt(dParts[1], 10);
+                let p3 = parseInt(dParts[2], 10);
+
+                if (isNaN(p1) || isNaN(p2) || isNaN(p3)) return cleaned;
+
+                if (dParts[0].length === 4) {
+                    let year = p1;
+                    let month = String(p2).padStart(2, '0');
+                    let day = String(p3).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                }
+
+                let day = String(p1).padStart(2, '0');
+                let month = String(p2).padStart(2, '0');
+                let year = p3;
+                if (year < 100) {
+                    year = year > 30 ? 1900 + year : 2000 + year;
+                }
+                return `${year}-${month}-${day}`;
+            }
+            return cleaned;
+        }
+
+        // Helper pour formater le Sexe (Garçon / Fille / Masculin / Féminin)
+        function parseAndFormatSexe(raw) {
+            if (!raw) return "";
+            const norm = raw.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            if (norm === "G" || norm === "M" || norm.startsWith("GAR") || norm === "MALE" || norm.startsWith("HOM") || norm.startsWith("MASC")) {
+                return "Garçon";
+            }
+            if (norm === "F" || norm.startsWith("FIL") || norm === "FEMALE" || norm.startsWith("FEM")) {
+                return "Fille";
+            }
+            return raw.trim();
+        }
+
+        // Helper pour formater le Régime (Demi-pensionnaire / Externe / Interne)
+        function parseAndFormatRegime(raw) {
+            if (!raw) return "";
+            const norm = raw.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            if (norm.includes("DEMI") || norm === "DP" || norm.includes("CANTINE") || norm.includes("PENSIONNAIRE")) {
+                return "Demi-pensionnaire";
+            }
+            if (norm.includes("EXTERNE") || norm === "EXT") {
+                return "Externe";
+            }
+            if (norm.includes("INTERNE") || norm === "INT") {
+                return "Interne";
+            }
+            return raw.trim();
+        }
+
+        function capitalizeName(str, isNom) {
+            if (!str) return "";
+            if (isNom) return str.toUpperCase();
+            return str.split('-').map(part => {
+                return part.split(' ').map(w => w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : '').join(' ');
+            }).join('-');
+        }
+
+        // Helper pour séparer "NOM Prénom" combinés
+        function splitCombinedFullName(rawName) {
+            if (!rawName) return { nom: "", prenom: "" };
+            let cleaned = rawName.trim().replace(/\s+/g, ' ');
+
+            if (cleaned.includes(',')) {
+                let parts = cleaned.split(',');
+                let nom = parts[0].trim();
+                let prenom = parts.slice(1).join(' ').trim();
+                return { nom: capitalizeName(nom, true), prenom: capitalizeName(prenom, false) };
+            }
+
+            let tokens = cleaned.split(' ');
+            if (tokens.length === 1) {
+                return { nom: capitalizeName(tokens[0], true), prenom: "" };
+            }
+
+            const isAllCaps = t => t === t.toUpperCase() && /[A-Z]/.test(t.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+            const hasUpper = tokens.some(isAllCaps);
+            const hasLowerOrTitle = tokens.some(t => !isAllCaps(t));
+
+            if (hasUpper && hasLowerOrTitle) {
+                let nomTokens = [];
+                let prenomTokens = [];
+                tokens.forEach(t => {
+                    if (isAllCaps(t) || ["DE", "DU", "DES", "LA", "LE", "DA", "VAN", "VON", "DEN", "BEN", "SAINT", "ST"].includes(t.toUpperCase())) {
+                        nomTokens.push(t);
+                    } else {
+                        prenomTokens.push(t);
+                    }
+                });
+
+                if (nomTokens.length > 0 && prenomTokens.length > 0) {
+                    return {
+                        nom: nomTokens.join(' ').toUpperCase(),
+                        prenom: capitalizeName(prenomTokens.join(' '), false)
+                    };
+                }
+            }
+
+            let nom = tokens[0];
+            let prenom = tokens.slice(1).join(' ');
+            return {
+                nom: capitalizeName(nom, true),
+                prenom: capitalizeName(prenom, false)
+            };
+        }
+
         function importerElevesCSV() {
-            const file = document.getElementById('csv-eleves-file').files[0];
+            const fileInput = document.getElementById('csv-eleves-file');
+            const file = fileInput ? fileInput.files[0] : null;
             if (!file) return showModal("Attention", "Veuillez choisir un fichier CSV.");
 
             const reader = new FileReader();
             reader.onload = function (event) {
-                const lines = event.target.result.split('\n');
-                let count = 0;
-                let start = 0;
-                if (lines[0] && (lines[0].toLowerCase().includes("nom") || lines[0].toLowerCase().includes("prénom") || lines[0].toLowerCase().includes("ddn"))) start = 1;
+                const text = event.target.result;
+                const rawLines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+                if (rawLines.length === 0) return showModal("Erreur", "Le fichier est vide.");
 
-                for (let i = start; i < lines.length; i++) {
-                    const col = lines[i].split(';');
-                    if (col.length < 2 || !col[0]?.trim()) continue;
+                const delimiter = detectCSVDelimiter(rawLines);
+                const parsedRows = rawLines.map(line => parseCSVLine(line, delimiter));
 
-                    let nom = col[0].trim();
-                    let prenom = col[1]?.trim() || "";
+                let startRow = 0;
+                const mapping = {
+                    full_name: -1,
+                    nom: -1,
+                    prenom: -1,
+                    dob: -1,
+                    sexe: -1,
+                    lv1: -1,
+                    lv2: -1,
+                    opt1: -1,
+                    opt2: -1,
+                    regime: -1,
+                    disp: -1
+                };
 
-                    // Parse Date DD/MM/YYYY -> YYYY-MM-DD
-                    let dobRaw = col[2]?.trim() || "";
-                    let dob = "";
-                    if (dobRaw.includes('/')) {
-                        let dParts = dobRaw.split('/');
-                        if (dParts.length === 3) {
-                            let day = dParts[0].padStart(2, '0');
-                            let month = dParts[1].padStart(2, '0');
-                            let year = dParts[2];
-                            dob = `${year}-${month}-${day}`;
-                        }
-                    } else if (dobRaw.includes('-')) {
-                        dob = dobRaw;
+                const headerRow = parsedRows[0];
+                const normHeaders = headerRow.map(h =>
+                    h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, " ").trim()
+                );
+
+                let headerMatchFound = false;
+
+                normHeaders.forEach((h, idx) => {
+                    if (!h) return;
+                    if ((h.includes("nom") && (h.includes("prenom") || h.includes("prenoms"))) ||
+                        ["eleve", "eleves", "student", "identite", "nom prenom", "nom_prenom", "nom complet", "nomcomplet"].includes(h)) {
+                        mapping.full_name = idx;
+                        headerMatchFound = true;
+                    } else if (h.includes("prenom") || h.includes("firstname") || h.includes("givenname")) {
+                        mapping.prenom = idx;
+                        headerMatchFound = true;
+                    } else if (h.includes("nom") || h.includes("lastname") || h.includes("surname") || h.includes("patronyme")) {
+                        mapping.nom = idx;
+                        headerMatchFound = true;
+                    } else if (h.includes("ddn") || h.includes("dob") || h.includes("birth") || h.includes("naissance") || h.includes("ne") || h.includes("nee") || h.includes("date")) {
+                        mapping.dob = idx;
+                        headerMatchFound = true;
+                    } else if (h.includes("sexe") || h.includes("sex") || h.includes("genre") || h.includes("gender")) {
+                        mapping.sexe = idx;
+                        headerMatchFound = true;
+                    } else if (h.includes("lv1") || h.includes("lva") || h.includes("langue 1") || h.includes("langue1") || h.includes("langue a")) {
+                        mapping.lv1 = idx;
+                        headerMatchFound = true;
+                    } else if (h.includes("lv2") || h.includes("lvb") || h.includes("langue 2") || h.includes("langue2") || h.includes("langue b")) {
+                        mapping.lv2 = idx;
+                        headerMatchFound = true;
+                    } else if (h.includes("opt1") || h.includes("option 1") || h.includes("option1") || h === "option 1" || h === "option1") {
+                        mapping.opt1 = idx;
+                        headerMatchFound = true;
+                    } else if (h.includes("opt2") || h.includes("option 2") || h.includes("option2") || h === "option 2" || h === "option2") {
+                        mapping.opt2 = idx;
+                        headerMatchFound = true;
+                    } else if (h.includes("regime") || h.includes("cantine") || h.includes("restauration") || h.includes("dp")) {
+                        mapping.regime = idx;
+                        headerMatchFound = true;
+                    } else if (h.includes("option") || h.includes("options") || h.includes("opt")) {
+                        if (mapping.opt1 === -1) mapping.opt1 = idx;
+                        else if (mapping.opt2 === -1) mapping.opt2 = idx;
+                        headerMatchFound = true;
+                    } else if (h.includes("disp") || h.includes("inapte")) {
+                        mapping.disp = idx;
+                        headerMatchFound = true;
+                    }
+                });
+
+                if (headerMatchFound) {
+                    startRow = 1;
+                } else {
+                    startRow = 0;
+                    const sampleRows = parsedRows.slice(0, Math.min(5, parsedRows.length));
+                    const colCount = Math.max(...sampleRows.map(r => r.length));
+
+                    const colTypes = [];
+                    for (let c = 0; c < colCount; c++) {
+                        let isDate = 0;
+                        let isSexe = 0;
+                        let isLanguage = 0;
+                        let totalVal = 0;
+
+                        sampleRows.forEach(row => {
+                            const val = row[c] || "";
+                            if (!val) return;
+                            totalVal++;
+                            if (/^\d{1,4}[\/\.-]\d{1,2}[\/\.-]\d{1,4}$/.test(val.trim())) isDate++;
+                            const normVal = val.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                            if (["G", "F", "M", "H", "GARCON", "FILLE", "MALE", "FEMALE"].includes(normVal)) isSexe++;
+                            if (["ANG", "ESP", "ALL", "ITA", "LAT", "ANGLAIS", "ESPAGNOL", "ALLEMAND", "ITALIEN", "LV1", "LV2"].some(l => normVal.includes(l))) isLanguage++;
+                        });
+
+                        if (totalVal > 0 && isDate / totalVal >= 0.5) colTypes[c] = 'dob';
+                        else if (totalVal > 0 && isSexe / totalVal >= 0.5) colTypes[c] = 'sexe';
+                        else if (totalVal > 0 && isLanguage / totalVal >= 0.5) colTypes[c] = 'lang';
+                        else colTypes[c] = 'text';
                     }
 
-                    // Map Sexe: G -> Garçon, F -> Fille
-                    let rawSexe = col[3]?.trim().toUpperCase() || "";
-                    let sexe = "";
-                    if (rawSexe === "G") sexe = "Garçon";
-                    else if (rawSexe === "F") sexe = "Fille";
-                    else sexe = rawSexe;
+                    colTypes.forEach((type, colIdx) => {
+                        if (type === 'dob' && mapping.dob === -1) mapping.dob = colIdx;
+                        else if (type === 'sexe' && mapping.sexe === -1) mapping.sexe = colIdx;
+                        else if (type === 'lang') {
+                            if (mapping.lv1 === -1) mapping.lv1 = colIdx;
+                            else if (mapping.lv2 === -1) mapping.lv2 = colIdx;
+                        }
+                    });
 
-                    let lv1 = col[4]?.trim() || "";
-                    let lv2 = col[5]?.trim() || "";
+                    const unassignedTextCols = [];
+                    for (let c = 0; c < colCount; c++) {
+                        if (c !== mapping.dob && c !== mapping.sexe && c !== mapping.lv1 && c !== mapping.lv2) {
+                            unassignedTextCols.push(c);
+                        }
+                    }
+
+                    if (unassignedTextCols.length >= 2) {
+                        mapping.nom = unassignedTextCols[0];
+                        mapping.prenom = unassignedTextCols[1];
+                    } else if (unassignedTextCols.length === 1) {
+                        mapping.full_name = unassignedTextCols[0];
+                    } else {
+                        mapping.nom = 0;
+                        mapping.prenom = 1;
+                        mapping.dob = 2;
+                        mapping.sexe = 3;
+                        mapping.lv1 = 4;
+                        mapping.lv2 = 5;
+                    }
+                }
+
+                let count = 0;
+                for (let i = startRow; i < parsedRows.length; i++) {
+                    const row = parsedRows[i];
+                    if (!row || row.length === 0 || row.every(cell => !cell.trim())) continue;
+
+                    let nom = "";
+                    let prenom = "";
+
+                    if (mapping.full_name !== -1 && row[mapping.full_name]) {
+                        const res = splitCombinedFullName(row[mapping.full_name]);
+                        nom = res.nom;
+                        prenom = res.prenom;
+                    } else {
+                        if (mapping.nom !== -1 && row[mapping.nom]) {
+                            let rawNom = row[mapping.nom].trim();
+                            if (mapping.prenom === -1 || !row[mapping.prenom]) {
+                                const res = splitCombinedFullName(rawNom);
+                                nom = res.nom;
+                                prenom = res.prenom;
+                            } else {
+                                nom = capitalizeName(rawNom, true);
+                            }
+                        }
+                        if (mapping.prenom !== -1 && row[mapping.prenom] && !prenom) {
+                            prenom = capitalizeName(row[mapping.prenom].trim(), false);
+                        }
+                    }
+
+                    if (!nom && !prenom) continue;
+
+                    const dob = mapping.dob !== -1 && row[mapping.dob] ? parseAndFormatDate(row[mapping.dob]) : "";
+                    const sexe = mapping.sexe !== -1 && row[mapping.sexe] ? parseAndFormatSexe(row[mapping.sexe]) : "";
+                    const lv1 = mapping.lv1 !== -1 && row[mapping.lv1] ? row[mapping.lv1].trim() : "";
+                    const lv2 = mapping.lv2 !== -1 && row[mapping.lv2] ? row[mapping.lv2].trim() : "";
+                    let opt1 = mapping.opt1 !== -1 && row[mapping.opt1] ? row[mapping.opt1].trim() : "";
+                    let opt2 = mapping.opt2 !== -1 && row[mapping.opt2] ? row[mapping.opt2].trim() : "";
+                    const regime = mapping.regime !== -1 && row[mapping.regime] ? parseAndFormatRegime(row[mapping.regime]) : "";
+                    const disp = mapping.disp !== -1 && row[mapping.disp] ? row[mapping.disp].trim() : "";
+
+                    // Separate multiple options if combined in single column (e.g. "Section Sportive, Latin")
+                    if (opt1 && !opt2 && (opt1.includes(',') || opt1.includes('/'))) {
+                        const parts = opt1.split(/[\/,]/).map(p => p.trim());
+                        opt1 = parts[0] || "";
+                        opt2 = parts[1] || "";
+                    }
 
                     const e = {
                         id: Date.now() + i,
@@ -2477,9 +2838,10 @@
                             dob: dob,
                             lv1: lv1,
                             lv2: lv2,
-                            opt1: "",
-                            opt2: "",
-                            disp: ""
+                            opt1: opt1,
+                            opt2: opt2,
+                            regime: regime,
+                            disp: disp
                         },
                         observations: "",
                         orientation: { wishes: [] },
@@ -2489,11 +2851,33 @@
                             T3: { moyenneG: "", abs: 0, retards: 0, notes: {}, punitions: {}, historique: [] }
                         }
                     };
+
                     eleves.push(e);
                     count++;
                 }
+
                 sauvegarder();
-                showModal("Importation terminée", `<b>${count}</b> élèves ont été importés.`, [{
+
+                let mappingDetails = [];
+                if (mapping.full_name !== -1) mappingDetails.push(`Nom + Prénom (Col ${mapping.full_name + 1})`);
+                else {
+                    if (mapping.nom !== -1) mappingDetails.push(`Nom (Col ${mapping.nom + 1})`);
+                    if (mapping.prenom !== -1) mappingDetails.push(`Prénom (Col ${mapping.prenom + 1})`);
+                }
+                if (mapping.dob !== -1) mappingDetails.push(`Date de naissance (Col ${mapping.dob + 1})`);
+                if (mapping.sexe !== -1) mappingDetails.push(`Sexe (Col ${mapping.sexe + 1})`);
+                if (mapping.lv1 !== -1) mappingDetails.push(`LV1 (Col ${mapping.lv1 + 1})`);
+                if (mapping.lv2 !== -1) mappingDetails.push(`LV2 (Col ${mapping.lv2 + 1})`);
+                if (mapping.opt1 !== -1) mappingDetails.push(`Option 1 (Col ${mapping.opt1 + 1})`);
+                if (mapping.opt2 !== -1) mappingDetails.push(`Option 2 (Col ${mapping.opt2 + 1})`);
+                if (mapping.regime !== -1) mappingDetails.push(`Régime (Col ${mapping.regime + 1})`);
+
+                let infoText = `<b>${count}</b> élève(s) importé(s) avec succès.<br><br>`;
+                if (mappingDetails.length > 0) {
+                    infoText += `<small style="color: #666;">Champs identifiés : ${mappingDetails.join(', ')}</small>`;
+                }
+
+                showModal("Importation réussie", infoText, [{
                     text: "Voir la liste",
                     cls: 'btn-green',
                     onclick: () => showSection('section-liste')
@@ -2501,6 +2885,40 @@
             };
             reader.readAsText(file);
         }
+
+        function toggleColorPalette(evt, id) {
+            evt.stopPropagation();
+            document.querySelectorAll('.card-color-palette').forEach(p => {
+                if (p.id !== `color-palette-${id}`) p.style.display = 'none';
+            });
+            const p = document.getElementById(`color-palette-${id}`);
+            if (p) {
+                p.style.display = (p.style.display === 'none' || !p.style.display) ? 'flex' : 'none';
+            }
+        }
+
+        function changerCouleurEleve(id, color) {
+            const e = eleves.find(x => x.id === id);
+            if (!e) return;
+            e.cardColor = color;
+            sauvegarder();
+            const card = document.getElementById(`eleve-card-${id}`);
+            if (card) {
+                card.style.backgroundColor = color;
+            }
+            const btn = document.getElementById(`color-btn-${id}`);
+            if (btn) {
+                btn.style.background = color;
+            }
+            const p = document.getElementById(`color-palette-${id}`);
+            if (p) p.style.display = 'none';
+        }
+
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.card-color-palette') && !e.target.closest('.card-color-picker-btn')) {
+                document.querySelectorAll('.card-color-palette').forEach(p => p.style.display = 'none');
+            }
+        });
 
         function chargerListe() {
             const container = document.getElementById('liste-container');
@@ -2510,17 +2928,16 @@
             eleves.sort((a, b) => a.nom.localeCompare(b.nom)).forEach((e, idx) => {
                 const div = document.createElement('div');
                 div.className = 'eleve-item';
+                div.id = `eleve-card-${e.id}`;
                 div.style.position = 'relative';
 
                 // On attache le click sur la carte entière pour ouvrir la fiche
                 div.onclick = function () { ouvrirFiche(e.id); };
 
-                // Code couleur ALTERNANCE (Vert pâle / Jaune pâle)
-                if (idx % 2 === 0) {
-                    div.style.backgroundColor = "#fff9c4"; // Jaune pale
-                } else {
-                    div.style.backgroundColor = "#c8e6c9"; // Vert pale
-                }
+                // Code couleur personnalisée ou ALTERNANCE par défaut (Vert pâle / Jaune pâle)
+                const defaultBg = idx % 2 === 0 ? "#fff9c4" : "#c8e6c9";
+                const bg = e.cardColor || defaultBg;
+                div.style.backgroundColor = bg;
 
                 // Avatar Photo ou Initiales
                 let avatarHtml = "";
@@ -2535,12 +2952,29 @@
                     avatarHtml = `<div style="width:56px; height:56px; border-radius:50%; background:${bgGrad}; color:white; display:flex; justify-content:center; align-items:center; font-weight:800; font-size:1.2rem; margin:0 auto 10px; border:2px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.15);">${escapeHTML(initials.toUpperCase())}</div>`;
                 }
 
-                // HTML interne
+                // HTML interne avec pastille de couleur en haut à droite
                 div.innerHTML = `
+                    <div class="card-color-picker-btn" id="color-btn-${e.id}" title="Changer la couleur de la fiche" style="position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border-radius: 50%; background: ${escapeHTML(bg)}; border: 2px solid rgba(0,0,0,0.25); box-shadow: 0 2px 5px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; transition: transform 0.2s;" onclick="toggleColorPalette(event, ${e.id})">
+                        <span style="font-size: 11px; pointer-events: none;">🎨</span>
+                    </div>
+
+                    <div class="card-color-palette" id="color-palette-${e.id}" style="display: none; position: absolute; top: 38px; right: 10px; background: white; border: 1px solid var(--border); border-radius: 12px; padding: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.2); z-index: 100; gap: 6px; flex-wrap: wrap; width: 130px;" onclick="event.stopPropagation()">
+                        <div style="background:#fff9c4; width:22px; height:22px; border-radius:50%; cursor:pointer; border:1px solid #d4e157;" title="Jaune paille" onclick="changerCouleurEleve(${e.id}, '#fff9c4')"></div>
+                        <div style="background:#c8e6c9; width:22px; height:22px; border-radius:50%; cursor:pointer; border:1px solid #81c784;" title="Vert d'eau" onclick="changerCouleurEleve(${e.id}, '#c8e6c9')"></div>
+                        <div style="background:#bbdefb; width:22px; height:22px; border-radius:50%; cursor:pointer; border:1px solid #64b5f6;" title="Bleu ciel" onclick="changerCouleurEleve(${e.id}, '#bbdefb')"></div>
+                        <div style="background:#ffcdd2; width:22px; height:22px; border-radius:50%; cursor:pointer; border:1px solid #e57373;" title="Rose poudré" onclick="changerCouleurEleve(${e.id}, '#ffcdd2')"></div>
+                        <div style="background:#ffe0b2; width:22px; height:22px; border-radius:50%; cursor:pointer; border:1px solid #ffb74d;" title="Pêche" onclick="changerCouleurEleve(${e.id}, '#ffe0b2')"></div>
+                        <div style="background:#e1bee7; width:22px; height:22px; border-radius:50%; cursor:pointer; border:1px solid #ba68c8;" title="Violet lavande" onclick="changerCouleurEleve(${e.id}, '#e1bee7')"></div>
+                        <div style="background:#ffffff; width:22px; height:22px; border-radius:50%; cursor:pointer; border:1px solid #ccc;" title="Blanc" onclick="changerCouleurEleve(${e.id}, '#ffffff')"></div>
+                        <label style="width:22px; height:22px; border-radius:50%; background:conic-gradient(red, yellow, lime, aqua, blue, magenta, red); cursor:pointer; display:inline-block; border:1px solid #ccc; margin:0; position:relative;" title="Couleur personnalisée sur mesure">
+                            <input type="color" style="position:absolute; opacity:0; width:100%; height:100%; cursor:pointer;" onchange="changerCouleurEleve(${e.id}, this.value)">
+                        </label>
+                    </div>
+
                     <div>
                         ${avatarHtml}
-                        <strong>${escapeHTML(e.nom.toUpperCase())}</strong>
-                        <span style="color:#7f8c8d; display:block;">${escapeHTML(e.prenom)}</span>
+                        <strong style="color: #2c3e50;">${escapeHTML(e.nom.toUpperCase())}</strong>
+                        <span style="color:#546e7a; display:block; font-weight:600;">${escapeHTML(e.prenom)}</span>
                     </div>
                     <div class="card-actions">
                         <button class="btn-tiny btn-blue" id="btn-pdf-${e.id}" title="Exporter la fiche PDF collègues">📄</button>
@@ -2598,27 +3032,40 @@
                             <option value="Fille" ${el.infos.sexe === 'Fille' ? 'selected' : ''}>Fille</option>
                         </select>
                     </div>
-                    <div class="form-group"><label>LV1</label><input type="text" id="mod-lv1" value="${escapeHTML(el.infos.lv1)}"></div>
-                    <div class="form-group"><label>LV2</label><input type="text" id="mod-lv2" value="${escapeHTML(el.infos.lv2)}"></div>
+                    <div class="form-group"><label>LV1</label><input type="text" id="mod-lv1" value="${escapeHTML(el.infos.lv1 || '')}" placeholder="ex: Anglais, Allemand"></div>
+                    <div class="form-group"><label>LV2</label><input type="text" id="mod-lv2" value="${escapeHTML(el.infos.lv2 || '')}" placeholder="ex: Espagnol, Italien"></div>
+                    <div class="form-group"><label>Option 1</label><input type="text" id="mod-opt1" value="${escapeHTML(el.infos.opt1 || '')}" placeholder="ex: Section Sportive, Orchestre, Latin..."></div>
+                    <div class="form-group"><label>Option 2</label><input type="text" id="mod-opt2" value="${escapeHTML(el.infos.opt2 || '')}" placeholder="ex: Latin, Grevisse..."></div>
                     <div class="form-group">
-                        <label>Binôme d'absence 1</label>
-                        <select id="mod-binome">
-                            <option value="">-- Aucun --</option>
-                            ${eleves.filter(x => x.id !== el.id).map(x => {
+                        <label>Régime</label>
+                        <select id="mod-regime">
+                            <option value="">-- Sélectionner --</option>
+                            <option value="Demi-pensionnaire" ${(el.infos.regime || '') === 'Demi-pensionnaire' ? 'selected' : ''}>Demi-pensionnaire (DP)</option>
+                            <option value="Externe" ${(el.infos.regime || '') === 'Externe' ? 'selected' : ''}>Externe</option>
+                            <option value="Interne" ${(el.infos.regime || '') === 'Interne' ? 'selected' : ''}>Interne</option>
+                        </select>
+                    </div>
+                    <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Binôme d'absence 1</label>
+                            <select id="mod-binome">
+                                <option value="">-- Aucun --</option>
+                                ${eleves.filter(x => x.id !== el.id).map(x => {
                 const fullName = `${x.nom} ${x.prenom}`;
                 return `<option value="${fullName}" ${el.infos.binome === fullName ? 'selected' : ''}>${escapeHTML(fullName)}</option>`;
             }).join('')}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Binôme d'absence 2 (Trio)</label>
-                        <select id="mod-binome2">
-                            <option value="">-- Aucun --</option>
-                            ${eleves.filter(x => x.id !== el.id).map(x => {
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Binôme d'absence 2 (Trio)</label>
+                            <select id="mod-binome2">
+                                <option value="">-- Aucun --</option>
+                                ${eleves.filter(x => x.id !== el.id).map(x => {
                 const fullName = `${x.nom} ${x.prenom}`;
                 return `<option value="${fullName}" ${el.infos.binome2 === fullName ? 'selected' : ''}>${escapeHTML(fullName)}</option>`;
             }).join('')}
-                        </select>
+                            </select>
+                        </div>
                     </div>
                 </div>
             `;
@@ -2635,6 +3082,9 @@
                         eleves[eIdx].infos.sexe = document.getElementById('mod-sexe').value;
                         eleves[eIdx].infos.lv1 = document.getElementById('mod-lv1').value;
                         eleves[eIdx].infos.lv2 = document.getElementById('mod-lv2').value;
+                        eleves[eIdx].infos.opt1 = document.getElementById('mod-opt1').value;
+                        eleves[eIdx].infos.opt2 = document.getElementById('mod-opt2').value;
+                        eleves[eIdx].infos.regime = document.getElementById('mod-regime').value;
                         eleves[eIdx].infos.binome = document.getElementById('mod-binome').value;
                         eleves[eIdx].infos.binome2 = document.getElementById('mod-binome2').value;
                         sauvegarder();
@@ -2922,6 +3372,15 @@
             document.getElementById('info-sexe').textContent = e.infos.sexe || "N/A";
             document.getElementById('info-lvs').textContent = (e.infos.lv1 || "N/A") + " / " + (e.infos.lv2 || "N/A");
 
+            let opts = [];
+            if (e.infos.opt1) opts.push(e.infos.opt1);
+            if (e.infos.opt2) opts.push(e.infos.opt2);
+            const infoOptsEl = document.getElementById('info-options');
+            if (infoOptsEl) infoOptsEl.textContent = opts.length > 0 ? opts.join(', ') : "Aucune";
+
+            const infoRegimeEl = document.getElementById('info-regime');
+            if (infoRegimeEl) infoRegimeEl.textContent = e.infos.regime || "Non renseigné";
+
             let binomeText = "Aucun";
             if (e.infos.binome) {
                 binomeText = escapeHTML(e.infos.binome);
@@ -3090,7 +3549,7 @@
                     <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 15px;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label style="font-size: 0.88em; margin-bottom: 5px;">Fonction</label>
-                            <select id="comp-func" style="padding: 8px 10px; font-size: 0.9em; border-radius: 8px; border-width: 1px;">
+                            <select id="comp-func">
                                 <option value="">-- Sélectionner --</option>
                                 <option value="Délégué principal">Délégué principal</option>
                                 <option value="Délégué suppléant">Délégué suppléant</option>
@@ -3100,7 +3559,7 @@
                         </div>
                         <div class="form-group" style="margin-bottom: 0;">
                             <label style="font-size: 0.88em; margin-bottom: 5px;">Accompagnement pédagogique</label>
-                            <select id="comp-acomp" onchange="onAcompChange()" style="padding: 8px 10px; font-size: 0.9em; border-radius: 8px; border-width: 1px;">
+                            <select id="comp-acomp" onchange="onAcompChange()">
                                 <option value="">-- Sélectionner --</option>
                                 <option value="PAP">PAP</option>
                                 <option value="PPRE">PPRE</option>
@@ -3109,7 +3568,7 @@
                         </div>
                         <div class="form-group" style="margin-bottom: 0;">
                             <label style="font-size: 0.88em; margin-bottom: 5px;">Dispositif</label>
-                            <select id="comp-disp" style="padding: 8px 10px; font-size: 0.9em; border-radius: 8px; border-width: 1px;">
+                            <select id="comp-disp">
                                 <option value="">-- Sélectionner --</option>
                                 <option value="Devoirs Faits">Devoirs Faits</option>
                                 <option value="Tutorat">Tutorat</option>
@@ -5021,19 +5480,69 @@
 
         function sauvegarder() { localStorage.setItem('pp_data', JSON.stringify(eleves)); }
 
-        async function telechargerSauvegarde() {
+        function telechargerSauvegarde() {
             // ÉTAPE 0 : Synchronisation forcée des données en mémoire vers le localStorage
             sauvegarder();
             if (typeof sauvegarderNotes === 'function') sauvegarderNotes();
 
-            // ÉTAPE 1 : On récupère la version la plus fraîche du stockage
+            const defaultName = `sauvegarde_PP_6e_${new Date().toISOString().split('T')[0]}`;
+
+            const modalHtml = `
+                <div style="text-align: left; padding: 5px 0;">
+                    <p style="margin-top: 0; color: var(--text);">Veuillez indiquer le nom souhaité pour le fichier de sauvegarde (l'extension <code>.json</code> sera ajoutée automatiquement) :</p>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="font-weight: bold;">Nom du fichier :</label>
+                        <input type="text" id="export-filename-input" value="${defaultName}" style="width: 100%; box-sizing: border-box;" placeholder="ex: sauvegarde_PP_6e">
+                    </div>
+                    <div style="background: rgba(52, 152, 219, 0.08); border-left: 3px solid var(--accent); padding: 10px 12px; border-radius: 6px; font-size: 0.86em; color: var(--text);">
+                        📁 <b>Choix de l'emplacement :</b> Lors de la validation, la fenêtre de votre ordinateur (Finder sur Mac, Explorateur sur Windows) s'ouvrira pour vous permettre de choisir exactement le dossier de votre choix (Bureau, Clé USB, Documents...).
+                    </div>
+                </div>
+            `;
+
+            showModal("Sauvegarde JSON", modalHtml, [
+                {
+                    text: "Annuler",
+                    cls: "btn-red"
+                },
+                {
+                    text: "💾 Choisir le dossier & Télécharger",
+                    cls: "btn-green",
+                    onclick: () => {
+                        let customName = document.getElementById('export-filename-input').value.trim();
+                        if (!customName) customName = defaultName;
+                        customName = customName.replace(/[\/\\:\*\?"<>\|]/g, '_');
+                        if (!customName.toLowerCase().endsWith('.json')) {
+                            customName += '.json';
+                        }
+                        executerTelechargementJSON(customName);
+                    }
+                }
+            ]);
+
+            setTimeout(() => {
+                const inp = document.getElementById('export-filename-input');
+                if (inp) {
+                    inp.focus();
+                    inp.select();
+                    inp.onkeydown = function (e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const confirmBtn = document.querySelector('#m-actions .btn-green');
+                            if (confirmBtn) confirmBtn.click();
+                        }
+                    };
+                }
+            }, 100);
+        }
+
+        async function executerTelechargementJSON(fileName) {
             const backupNotesStr = localStorage.getItem('pp_notes_rappels') || '[]';
             const backupDataStr = localStorage.getItem('pp_data') || '[]';
 
             const backupNotes = JSON.parse(backupNotesStr);
             const backupData = JSON.parse(backupDataStr);
 
-            // ÉTAPE 2 : Capture brute de TOUTES les données préfixées par 'pp_'
             const backupPayload = {
                 signature: "CarnetDeBord_PP_FULL_BACKUP",
                 version: "4.2",
@@ -5050,11 +5559,9 @@
             });
 
             const jsonString = JSON.stringify(backupPayload, null, 2);
-            const fileName = `sauvegarde_PP_6e_${new Date().toISOString().split('T')[0]}.json`;
+            const successMsg = `Sauvegarde réussie !<br><br>📊 <b>${backupData.length}</b> élèves<br>📌 <b>${backupNotes.length}</b> notes/rappels<br>📂 Fichier : <b>${fileName}</b>`;
 
-            const successMsg = `Sauvegarde réussie !<br><br>📊 <b>${backupData.length}</b> élèves<br>📌 <b>${backupNotes.length}</b> notes/rappels<br>📂 Fichier : ${fileName}`;
-
-            if ('showSaveFilePicker' in window) {
+            if ('showSaveFilePicker' in window && window.location.protocol !== 'file:') {
                 try {
                     const handle = await window.showSaveFilePicker({
                         suggestedName: fileName,
@@ -5080,7 +5587,14 @@
             a.download = fileName;
             a.click();
             URL.revokeObjectURL(url);
-            showModal("Exportation JSON", successMsg);
+
+            const isFileProtocol = window.location.protocol === 'file:';
+            let infoMsg = successMsg;
+            if (isFileProtocol) {
+                infoMsg += `<br><br><small style="color:#666;">💡 <i>En mode fichier local (<code>file://</code>), le navigateur envoie le fichier dans le dossier <b>Téléchargements</b>. Pour choisir le dossier à chaque fois, cochez "Toujours demander où enregistrer chaque fichier" dans les réglages de votre navigateur.</i></small>`;
+            }
+
+            showModal("Exportation JSON", infoMsg);
         }
 
 
@@ -5156,7 +5670,7 @@
                 try {
                     const hvcRaw = localStorage.getItem('pp_hvc_seances');
                     if (hvcRaw) countHvc = JSON.parse(hvcRaw).length;
-                } catch(e){}
+                } catch (e) { }
 
                 const elEleves = document.getElementById('archive-stat-eleves');
                 if (elEleves) elEleves.textContent = countEleves;
