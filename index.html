@@ -2033,14 +2033,109 @@
                     <h2 style="margin:0; color:var(--primary); font-size:1.8em; font-weight: 800;">Fiche Récapitulative
                         de la Classe</h2>
                 </div>
-                <button class="btn-green" onclick="ouvrirModalCreationSuivi('classe')"
-                    style="padding: 10px 20px; font-weight: bold; border-radius: 8px; box-shadow: 0 4px 12px rgba(46,204,113,0.3);">
-                    ➕ Créer un suivi pour toute la classe
-                </button>
+                <div style="width: 140px;" class="desktop-only"></div>
             </div>
 
-            <div
+            <!-- Onglets Fiche Classe -->
+            <div class="tabs" style="margin-bottom: 20px; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <div class="tab tab-classe active" onclick="switchTabClasse(event, 'fc-tab-profil')"
+                    style="padding: 10px 18px; font-size: 0.95em;">🏫 Profil de la classe</div>
+                <div class="tab tab-classe" onclick="switchTabClasse(event, 'fc-tab-suivi-docs')"
+                    style="padding: 10px 18px; font-size: 0.95em;">📊 Suivi des documents</div>
+                <div class="tab tab-classe" onclick="switchTabClasse(event, 'fc-tab-documents')"
+                    style="padding: 10px 18px; font-size: 0.95em;">📁 Documents de la classe</div>
+            </div>
+
+            <!-- Onglet 1 : Profil de la classe -->
+            <div id="fc-tab-profil" class="tab-content-classe active"
                 style="background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); border: 1px solid var(--border);">
+
+                <h3 style="color:var(--primary); margin-top: 0; margin-bottom: 20px;">🎓 Profil & Caractéristiques de la
+                    Classe</h3>
+
+                <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
+                    <!-- Profil Pédagogique -->
+                    <div style="background:var(--card-scolaire-bg); padding:15px; border-radius:10px;">
+                        <h4 style="margin-top:0; color:var(--accent);">📚 Profil Pédagogique & Niveau</h4>
+                        <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:10px;">
+                            <textarea id="input-profil-classe-pedagogique"
+                                placeholder="Ex: Groupe dynamique, bon niveau général..." rows="3"
+                                style="width:100%; resize:vertical; padding:8px; border-radius:5px; border:1px solid var(--border); background:var(--card-bg); color:var(--text);"></textarea>
+                            <div style="text-align:right;">
+                                <button class="btn-tiny btn-green" id="btn-profil-classe-pedagogique"
+                                    onclick="ajouterProfilClasse('pedagogique')">OK</button>
+                            </div>
+                        </div>
+                        <div id="list-profil-classe-pedagogique" class="profil-list"></div>
+                    </div>
+
+                    <!-- Climat & Ambiance -->
+                    <div style="background:var(--card-contexte-bg); padding:15px; border-radius:10px;">
+                        <h4 style="margin-top:0; color:var(--info);">🏫 Climat de Classe & Ambiance</h4>
+                        <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:10px;">
+                            <textarea id="input-profil-classe-climat"
+                                placeholder="Ex: Bonne ambiance, bavardages en début de cours..." rows="3"
+                                style="width:100%; resize:vertical; padding:8px; border-radius:5px; border:1px solid var(--border); background:var(--card-bg); color:var(--text);"></textarea>
+                            <div style="text-align:right;">
+                                <button class="btn-tiny btn-green" id="btn-profil-classe-climat"
+                                    onclick="ajouterProfilClasse('climat')">OK</button>
+                            </div>
+                        </div>
+                        <div id="list-profil-classe-climat" class="profil-list"></div>
+                    </div>
+
+                    <!-- Points d'Attention & Projets -->
+                    <div style="background:var(--card-famille-bg); padding:15px; border-radius:10px;">
+                        <h4 style="margin-top:0; color:var(--warning);">💡 Points d'Attention & Projets</h4>
+                        <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:10px;">
+                            <textarea id="input-profil-classe-projets"
+                                placeholder="Ex: 3 PAI, tutorat mis en place, besoin de soutien..." rows="3"
+                                style="width:100%; resize:vertical; padding:8px; border-radius:5px; border:1px solid var(--border); background:var(--card-bg); color:var(--text);"></textarea>
+                            <div style="text-align:right;">
+                                <button class="btn-tiny btn-green" id="btn-profil-classe-projets"
+                                    onclick="ajouterProfilClasse('projets')">OK</button>
+                            </div>
+                        </div>
+                        <div id="list-profil-classe-projets" class="profil-list"></div>
+                    </div>
+                </div>
+
+                <hr style="border:0; border-top:2px dashed var(--border); margin:30px 0 20px;">
+
+                <!-- Suivi des infos de la classe -->
+                <h3 style="color:var(--primary); margin-top: 0; margin-bottom: 15px;">📝 Suivi & Remarques Générales de
+                    la Classe</h3>
+
+                <div class="form-group" style="text-align: left;">
+                    <label style="font-weight: bold;">Ajouter une remarque / note d'information pour la classe :</label>
+                    <textarea id="obs-classe-input" rows="3"
+                        placeholder="Saisissez une remarque ou compte-rendu pour l'ensemble de la classe..."></textarea>
+
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label style="font-weight: bold;">Provenance de l'information :</label>
+                        <select id="obs-classe-source" style="width: auto; min-width: 250px;">
+                            <option value="Général">Général / Non spécifié</option>
+                            <option value="Équipe éducative">Équipe éducative / Enseignants</option>
+                            <option value="Direction / Vie Scolaire">Direction / Vie Scolaire</option>
+                            <option value="Parents / Conseil de classe">Parents / Conseil de classe</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-green" id="btn-valider-obs-classe"
+                        style="margin-top:10px; width: auto; min-width: 200px;"
+                        onclick="ajouterObservationClasse()">Valider et ajouter la remarque</button>
+                </div>
+
+                <hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
+                <label style="font-weight: bold;">Remarques de classe enregistrées :</label>
+                <div id="obs-classe-list" style="margin-top:10px;">
+                    <!-- Liste des remarques classe -->
+                </div>
+            </div>
+
+            <!-- Onglet 2 : Suivi des documents -->
+            <div id="fc-tab-suivi-docs" class="tab-content-classe"
+                style="display:none; background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); border: 1px solid var(--border);">
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                     <div>
@@ -2050,14 +2145,54 @@
                             récapitule uniquement les suivis créés à l'échelle de la classe entière. Cliquez sur les
                             cases pour valider le retour.</p>
                     </div>
-                    <div id="fiche-classe-stats-badge"
-                        style="background: rgba(52, 152, 219, 0.1); color: var(--primary); padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; border: 1px solid var(--border);">
-                        0 suivi de classe
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="btn-green" onclick="ouvrirModalCreationSuivi('classe')"
+                            style="padding: 8px 16px; font-weight: bold; border-radius: 8px; box-shadow: 0 4px 12px rgba(46,204,113,0.3);">
+                            ➕ Créer un suivi pour toute la classe
+                        </button>
+                        <div id="fiche-classe-stats-badge"
+                            style="background: rgba(52, 152, 219, 0.1); color: var(--primary); padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; border: 1px solid var(--border);">
+                            0 suivi de classe
+                        </div>
                     </div>
                 </div>
 
                 <div id="table-suivi-classe-container" style="overflow-x: auto; max-width: 100%;">
                     <!-- Table matrix dynamic content -->
+                </div>
+            </div>
+
+            <!-- Onglet 3 : Documents de la classe -->
+            <div id="fc-tab-documents" class="tab-content-classe"
+                style="display:none; background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); border: 1px solid var(--border);">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="margin: 0; color: var(--primary); font-size: 1.3em;">📁 Documents de la Classe</h3>
+                    <span id="doc-classe-count-badge"
+                        style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; font-weight: bold;">0
+                        document</span>
+                </div>
+
+                <!-- Zone de dépôt -->
+                <div id="dropzone-documents-classe" onclick="document.getElementById('input-classe-doc').click()"
+                    ondragover="handleDocDragOverClasse(event)" ondragleave="handleDocDragLeaveClasse(event)"
+                    ondrop="handleDocDropClasse(event)"
+                    style="border: 2px dashed var(--primary); border-radius: 12px; padding: 30px 20px; text-align: center; cursor: pointer; background: rgba(52, 152, 219, 0.04); transition: all 0.2s ease;">
+                    <span style="font-size: 2.5em; display: block; margin-bottom: 10px;">📂📥</span>
+                    <p style="margin: 0; font-weight: 700; color: var(--primary); font-size: 1.05em;">
+                        Glissez-déposez des fichiers ici ou cliquez pour en sélectionner</p>
+                    <p style="margin: 6px 0 0; font-size: 0.85em; color: var(--text-secondary);">Formats
+                        supportés : PDF, Images (JPG, PNG), Word, Excel, Textes, Scans...</p>
+                </div>
+                <input type="file" id="input-classe-doc" multiple style="display: none;"
+                    onchange="traiterUploadDocumentsClasse(event)">
+
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 25px 0;">
+
+                <!-- Liste des documents de classe -->
+                <div id="docs-list-container-classe"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
+                    <!-- Fichiers affichés ici -->
                 </div>
             </div>
         </div>
@@ -7593,7 +7728,9 @@
             showConfirm("Supprimer le document", `Voulez-vous vraiment supprimer définitivement le document <b>${escapeHTML(docName)}</b> ?`, async () => {
                 try {
                     await supprimerDocumentDB(docId);
-                    if (typeof indexActuel !== 'undefined' && eleves[indexActuel]) {
+                    if (document.getElementById('vue-fiche-classe') && document.getElementById('vue-fiche-classe').style.display === 'block') {
+                        chargerSectionDocumentsClasse();
+                    } else if (typeof indexActuel !== 'undefined' && eleves[indexActuel]) {
                         chargerSectionDocuments(eleves[indexActuel].id);
                     }
                     showModal("Succès", "Document supprimé.");
@@ -7612,18 +7749,372 @@
             localStorage.setItem('pp_doc_trackings', JSON.stringify(trackings));
         }
 
+        let indexModificationProfilClasse = null;
+        let indexModificationObservationClasse = null;
+
+        function getClasseProfil() {
+            return JSON.parse(localStorage.getItem('pp_classe_profil')) || {
+                pedagogique: [],
+                climat: [],
+                projets: []
+            };
+        }
+
+        function saveClasseProfil(data) {
+            localStorage.setItem('pp_classe_profil', JSON.stringify(data));
+        }
+
+        function getClasseObservations() {
+            return JSON.parse(localStorage.getItem('pp_classe_observations')) || [];
+        }
+
+        function saveClasseObservations(data) {
+            localStorage.setItem('pp_classe_observations', JSON.stringify(data));
+        }
+
+        function switchTabClasse(evt, tabId) {
+            const parent = document.getElementById('vue-fiche-classe');
+            if (!parent) return;
+            parent.querySelectorAll('.tab-content-classe').forEach(c => c.style.display = 'none');
+            parent.querySelectorAll('.tab-classe').forEach(t => t.classList.remove('active'));
+
+            const targetTab = document.getElementById(tabId);
+            if (targetTab) targetTab.style.display = 'block';
+            if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
+
+            if (tabId === 'fc-tab-documents') {
+                chargerSectionDocumentsClasse();
+            } else if (tabId === 'fc-tab-profil') {
+                renderProfilsClasse();
+                renderObservationsClasse();
+            } else if (tabId === 'fc-tab-suivi-docs') {
+                chargerVueFicheClasse();
+            }
+        }
+
         function ouvrirFicheClasse() {
             document.getElementById('vue-liste').style.display = 'none';
             document.getElementById('vue-fiche').style.display = 'none';
             document.getElementById('vue-fiche-classe').style.display = 'block';
             document.getElementById('btn-retour-home-liste').style.display = 'none';
+
+            renderProfilsClasse();
+            renderObservationsClasse();
             chargerVueFicheClasse();
+            chargerSectionDocumentsClasse();
         }
 
         function fermerFicheClasse() {
             document.getElementById('vue-fiche-classe').style.display = 'none';
             document.getElementById('vue-liste').style.display = 'block';
             document.getElementById('btn-retour-home-liste').style.display = 'inline-block';
+        }
+
+        // PROFIL CLASSE
+        function ajouterProfilClasse(type) {
+            const inputId = `input-profil-classe-${type}`;
+            const inputEl = document.getElementById(inputId);
+            if (!inputEl) return;
+            const txt = inputEl.value;
+            if (!txt || txt.trim() === "") return;
+
+            const profilData = getClasseProfil();
+            if (!profilData[type]) profilData[type] = [];
+
+            if (indexModificationProfilClasse && indexModificationProfilClasse.type === type) {
+                profilData[type][indexModificationProfilClasse.idx] = txt.trim();
+                indexModificationProfilClasse = null;
+                const btn = document.getElementById(`btn-profil-classe-${type}`);
+                if (btn) btn.innerText = "OK";
+            } else {
+                profilData[type].push(txt.trim());
+            }
+
+            inputEl.value = "";
+            saveClasseProfil(profilData);
+            renderProfilsClasse();
+        }
+
+        function renderProfilsClasse() {
+            renderProfilClasseCategory('pedagogique');
+            renderProfilClasseCategory('climat');
+            renderProfilClasseCategory('projets');
+        }
+
+        function renderProfilClasseCategory(type) {
+            const container = document.getElementById(`list-profil-classe-${type}`);
+            if (!container) return;
+
+            const profilData = getClasseProfil();
+            const list = profilData[type] || [];
+
+            container.innerHTML = list.map((item, idx) => `
+                <div style="background:white; padding:8px; margin-bottom:5px; border-radius:5px; box-shadow:0 1px 2px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center;">
+                    <span style="flex:1; margin-right:10px;">${escapeHTML(item)}</span>
+                    <div style="flex-shrink:0;">
+                        <button class="btn-tiny" style="color:#f39c12; background:none; border:none; padding:0; cursor:pointer;" onclick="modifierProfilClasse('${type}', ${idx})">✏️</button>
+                        <button class="btn-tiny" style="color:#c0392b; background:none; border:none; padding:0; cursor:pointer;" onclick="supprimerProfilClasse('${type}', ${idx})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function supprimerProfilClasse(type, idx) {
+            showConfirm("Suppression", "Supprimer cette info du profil de classe ?", () => {
+                const profilData = getClasseProfil();
+                if (profilData[type]) {
+                    profilData[type].splice(idx, 1);
+                    if (indexModificationProfilClasse && indexModificationProfilClasse.type === type && indexModificationProfilClasse.idx === idx) {
+                        indexModificationProfilClasse = null;
+                        const btn = document.getElementById(`btn-profil-classe-${type}`);
+                        if (btn) btn.innerText = "OK";
+                        const inputEl = document.getElementById(`input-profil-classe-${type}`);
+                        if (inputEl) inputEl.value = "";
+                    }
+                    saveClasseProfil(profilData);
+                    renderProfilsClasse();
+                }
+            });
+        }
+
+        function modifierProfilClasse(type, idx) {
+            const profilData = getClasseProfil();
+            if (!profilData[type] || !profilData[type][idx]) return;
+            const item = profilData[type][idx];
+            const inputEl = document.getElementById(`input-profil-classe-${type}`);
+            const btn = document.getElementById(`btn-profil-classe-${type}`);
+            if (inputEl) inputEl.value = item;
+            if (btn) btn.innerText = "Modif";
+            indexModificationProfilClasse = { type: type, idx: idx };
+            if (inputEl) inputEl.focus();
+        }
+
+        // OBSERVATIONS / SUIVI DE LA CLASSE
+        function ajouterObservationClasse() {
+            const inputEl = document.getElementById('obs-classe-input');
+            const txt = inputEl ? inputEl.value : "";
+            if (!txt || txt.trim() === "") return showModal("Erreur", "Veuillez saisir un texte.");
+
+            const sourceEl = document.getElementById('obs-classe-source');
+            const source = sourceEl ? sourceEl.value : "Général";
+            const observations = getClasseObservations();
+
+            if (indexModificationObservationClasse !== null) {
+                if (observations[indexModificationObservationClasse]) {
+                    observations[indexModificationObservationClasse].text = txt.trim();
+                    observations[indexModificationObservationClasse].source = source;
+                }
+                indexModificationObservationClasse = null;
+                showModal("Succès", "Remarque de classe modifiée !");
+                resetObsClasseForm();
+            } else {
+                const note = {
+                    date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    text: txt.trim(),
+                    source: source
+                };
+                observations.unshift(note);
+            }
+
+            if (inputEl) inputEl.value = "";
+            if (sourceEl) sourceEl.value = "Général";
+            saveClasseObservations(observations);
+            renderObservationsClasse();
+        }
+
+        function resetObsClasseForm() {
+            indexModificationObservationClasse = null;
+            const inputEl = document.getElementById('obs-classe-input');
+            const sourceEl = document.getElementById('obs-classe-source');
+            const btn = document.getElementById('btn-valider-obs-classe');
+            if (inputEl) inputEl.value = "";
+            if (sourceEl) sourceEl.value = "Général";
+            if (btn) btn.innerText = "Valider et ajouter la remarque";
+        }
+
+        function modifierObservationClasse(idx) {
+            const observations = getClasseObservations();
+            if (!observations[idx]) return;
+            indexModificationObservationClasse = idx;
+            const note = observations[idx];
+
+            const inputEl = document.getElementById('obs-classe-input');
+            const sourceEl = document.getElementById('obs-classe-source');
+            const btn = document.getElementById('btn-valider-obs-classe');
+
+            if (inputEl) inputEl.value = note.text;
+            if (sourceEl) sourceEl.value = note.source || "Général";
+            if (btn) btn.innerText = "Modifier la remarque";
+
+            const tabEl = document.getElementById('fc-tab-profil');
+            if (tabEl) tabEl.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function supprimerObservationClasse(idx) {
+            showConfirm("Suppression", "Voulez-vous supprimer cette remarque de classe ?", () => {
+                const observations = getClasseObservations();
+                observations.splice(idx, 1);
+                if (indexModificationObservationClasse === idx) resetObsClasseForm();
+                saveClasseObservations(observations);
+                renderObservationsClasse();
+            });
+        }
+
+        function renderObservationsClasse() {
+            const container = document.getElementById('obs-classe-list');
+            if (!container) return;
+            const list = getClasseObservations();
+
+            const sourceColors = {
+                "Parents / Conseil de classe": { bg: "#ffe3e3", text: "#c92a2a", icon: "👨‍👩‍👧" },
+                "Direction / Vie Scolaire": { bg: "#e3fafc", text: "#0c8599", icon: "🏢" },
+                "Équipe éducative": { bg: "#f3f0ff", text: "#6741d9", icon: "🏫" },
+                "Général": { bg: "#f1f3f5", text: "#495057", icon: "📌" }
+            };
+
+            container.innerHTML = list.length === 0 ?
+                '<p style="color:#95a5a6; font-style:italic;">Aucune remarque enregistrée pour la classe.</p>' :
+                list.map((note, idx) => {
+                    const src = note.source || "Général";
+                    const style = sourceColors[src] || sourceColors["Général"];
+                    const badge = `<span class="tag" style="background:${style.bg}; color:${style.text}; font-size:0.8em; margin-bottom:10px; display:inline-block; padding: 4px 8px; border-radius: 8px; font-weight: bold;">${style.icon} ${escapeHTML(src)}</span>`;
+
+                    return `
+                        <div class="note-card" style="position:relative; text-align: left; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); background: var(--card-bg); border: 1px solid var(--border); margin-bottom: 15px;">
+                            <div style="position:absolute; top:10px; right:10px;">
+                                <button class="btn-tiny bg-orange" style="margin-right:5px;" onclick="modifierObservationClasse(${idx})">✏️</button>
+                                <button class="btn-tiny bg-red" onclick="supprimerObservationClasse(${idx})">🗑️</button>
+                            </div>
+                            ${badge}
+                            <p style="margin: 5px 0 10px; white-space: pre-wrap; font-size: 0.95em; color: var(--text);">${escapeHTML(note.text)}</p>
+                            <div style="font-size:0.75em; color:var(--text-secondary); border-top:1px dashed var(--border); padding-top:5px; margin-top:5px;">
+                                📅 Saisi le : ${escapeHTML(note.date)}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+        }
+
+        // DOCUMENTS DE LA CLASSE (INDEXEDDB)
+        async function chargerSectionDocumentsClasse() {
+            const container = document.getElementById('docs-list-container-classe');
+            const badge = document.getElementById('doc-classe-count-badge');
+            if (!container) return;
+
+            container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 20px;">Chargement des documents de la classe...</p>';
+
+            const docs = await recupererDocumentsEleveDB('classe');
+            if (badge) badge.textContent = `${docs.length} document${docs.length > 1 ? 's' : ''}`;
+
+            if (docs.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 30px; background: rgba(0,0,0,0.02); border-radius: 12px; border: 1px dashed var(--border);">
+                        <span style="font-size: 2.2em; display: block; margin-bottom: 8px;">📁</span>
+                        <p style="margin: 0; color: var(--text-secondary); font-style: italic;">Aucun document déposé pour la classe.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            docs.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            let html = '';
+            docs.forEach(doc => {
+                const docMeta = getDocTypeIcon(doc.type, doc.name);
+                const dateStr = doc.date ? new Date(doc.date).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : 'Inconnu';
+                const sizeStr = formatFileSize(doc.size);
+
+                html += `
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: transform 0.2s, box-shadow 0.2s;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                                <span style="font-size: 2em; background: rgba(0,0,0,0.04); padding: 8px 12px; border-radius: 10px;">${docMeta.icon}</span>
+                                <div style="min-width: 0; flex: 1;">
+                                    <h4 style="margin: 0; font-size: 0.95em; font-weight: 700; color: var(--primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="${escapeHTML(doc.name)}">${escapeHTML(doc.name)}</h4>
+                                    <span style="font-size: 0.78em; color: var(--text-secondary); display: block; margin-top: 2px;">${sizeStr} • ${dateStr}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 6px; margin-top: 12px; border-top: 1px solid #f0f0f0; padding-top: 10px;">
+                            <button class="btn-tiny btn-blue" onclick="visualiserDocument('${doc.id}')" style="flex: 1; padding: 6px; font-size: 0.82em; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Visualiser">
+                                👁️ Aperçu
+                            </button>
+                            <button class="btn-tiny btn-green" onclick="telechargerDocument('${doc.id}')" style="padding: 6px 10px; font-size: 0.82em;" title="Télécharger">
+                                ⬇️
+                            </button>
+                            <button class="btn-tiny btn-red" onclick="supprimerDocumentConfirm('${doc.id}', '${escapeHTML(doc.name.replace(/'/g, "\\'"))}')" style="padding: 6px 10px; font-size: 0.82em;" title="Supprimer">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function handleDocDragOverClasse(evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            const dz = document.getElementById('dropzone-documents-classe');
+            if (dz) {
+                dz.style.background = 'rgba(52, 152, 219, 0.12)';
+                dz.style.borderColor = 'var(--primary-dark, #1d4ed8)';
+            }
+        }
+
+        function handleDocDragLeaveClasse(evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            const dz = document.getElementById('dropzone-documents-classe');
+            if (dz) {
+                dz.style.background = 'rgba(52, 152, 219, 0.04)';
+                dz.style.borderColor = 'var(--primary)';
+            }
+        }
+
+        function handleDocDropClasse(evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            handleDocDragLeaveClasse(evt);
+            if (evt.dataTransfer && evt.dataTransfer.files && evt.dataTransfer.files.length > 0) {
+                traiterFilesUploadClasse(evt.dataTransfer.files);
+            }
+        }
+
+        function traiterUploadDocumentsClasse(evt) {
+            if (evt.target && evt.target.files && evt.target.files.length > 0) {
+                traiterFilesUploadClasse(evt.target.files);
+                evt.target.value = '';
+            }
+        }
+
+        async function traiterFilesUploadClasse(filesList) {
+            let count = 0;
+            for (let i = 0; i < filesList.length; i++) {
+                const file = filesList[i];
+                try {
+                    const base64Data = await readAsDataURLPromise(file);
+                    const docObj = {
+                        id: 'doc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+                        eleveId: 'classe',
+                        name: file.name,
+                        type: file.type || 'application/octet-stream',
+                        size: file.size,
+                        date: new Date().toISOString(),
+                        data: base64Data
+                    };
+                    await sauvegarderDocumentDB(docObj);
+                    count++;
+                } catch (err) {
+                    console.error("Erreur lors de la lecture du fichier", file.name, err);
+                }
+            }
+
+            if (count > 0) {
+                chargerSectionDocumentsClasse();
+                showModal("Succès", `${count} document${count > 1 ? 's ajoutés' : ' ajouté'} avec succès pour la classe !`);
+            }
         }
 
         function ouvrirModalCreationSuivi(scope) {
