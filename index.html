@@ -1895,6 +1895,9 @@
                             style="padding: 8px 14px; font-size: 0.9em;">📂 Profil</div>
                         <div class="tab" onclick="switchTab(event, 'f-comp')"
                             style="padding: 8px 14px; font-size: 0.9em;">📝 Suivi</div>
+                        <div class="tab"
+                            style="color: var(--primary); font-weight: bold; padding: 8px 14px; font-size: 0.9em;"
+                            onclick="switchTab(event, 'f-documents')">📁 Documents</div>
                         <div class="tab" style="color: #d35400; font-weight: bold; padding: 8px 14px; font-size: 0.9em;"
                             onclick="switchTab(event, 'f-orientation')">🎯 Orientation</div>
                         <div class="tab"
@@ -1946,6 +1949,59 @@
                         <div id="obs-list" style="margin-top:10px;">
                             <!-- Les cartes s'afficheront ici -->
                         </div>
+
+                        <hr style="border:0; border-top:2px dashed var(--border); margin:30px 0 20px;">
+
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <h3 style="margin: 0; color: var(--primary); font-size: 1.2em;">📋 Suivi des documents &
+                                    signatures</h3>
+                                <span style="font-size: 0.85em; color: var(--text-secondary);">Documents de classe et
+                                    spécifiques à cet élève</span>
+                            </div>
+                            <button class="btn-green" onclick="ouvrirModalCreationSuivi('eleve')"
+                                style="padding: 6px 14px; font-size: 0.88em; font-weight: bold; border-radius: 8px;">
+                                ➕ Ajouter un suivi individuel
+                            </button>
+                        </div>
+
+                        <div id="eleve-suivi-docs-container" style="display: flex; flex-direction: column; gap: 10px;">
+                            <!-- Suivis de l'élève -->
+                        </div>
+                    </div>
+
+                    <div id="f-documents" class="tab-content"
+                        style="background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); border: 1px solid var(--border);">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                            <h3 style="margin: 0; color: var(--primary); font-size: 1.3em;">📁 Documents de l'élève</h3>
+                            <span id="doc-count-badge"
+                                style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; font-weight: bold;">0
+                                document</span>
+                        </div>
+
+                        <!-- Zone de dépôt -->
+                        <div id="dropzone-documents" onclick="document.getElementById('input-eleve-doc').click()"
+                            ondragover="handleDocDragOver(event)" ondragleave="handleDocDragLeave(event)"
+                            ondrop="handleDocDrop(event)"
+                            style="border: 2px dashed var(--primary); border-radius: 12px; padding: 30px 20px; text-align: center; cursor: pointer; background: rgba(52, 152, 219, 0.04); transition: all 0.2s ease;">
+                            <span style="font-size: 2.5em; display: block; margin-bottom: 10px;">📂📥</span>
+                            <p style="margin: 0; font-weight: 700; color: var(--primary); font-size: 1.05em;">
+                                Glissez-déposez des fichiers ici ou cliquez pour en sélectionner</p>
+                            <p style="margin: 6px 0 0; font-size: 0.85em; color: var(--text-secondary);">Formats
+                                supportés : PDF, Images (JPG, PNG), Word, Excel, Textes, Scans...</p>
+                        </div>
+                        <input type="file" id="input-eleve-doc" multiple style="display: none;"
+                            onchange="traiterUploadDocuments(event)">
+
+                        <hr style="border: 0; border-top: 1px solid var(--border); margin: 25px 0;">
+
+                        <!-- Liste des documents -->
+                        <div id="docs-list-container"
+                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
+                            <!-- Fichiers affichés ici -->
+                        </div>
                     </div>
 
                     <div id="f-orientation" class="tab-content"
@@ -1962,6 +2018,46 @@
                     <div id="f-bilans" class="tab-content"
                         style="background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); border: 1px solid var(--border);">
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VUE FICHE CLASSE -->
+        <div id="vue-fiche-classe" style="display:none">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                <button onclick="fermerFicheClasse()" class="btn-blue"
+                    style="padding: 10px 20px; font-weight: bold; border-radius: 8px;">← Retour Liste</button>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.8em;">🏫</span>
+                    <h2 style="margin:0; color:var(--primary); font-size:1.8em; font-weight: 800;">Fiche Récapitulative
+                        de la Classe</h2>
+                </div>
+                <button class="btn-green" onclick="ouvrirModalCreationSuivi('classe')"
+                    style="padding: 10px 20px; font-weight: bold; border-radius: 8px; box-shadow: 0 4px 12px rgba(46,204,113,0.3);">
+                    ➕ Créer un suivi pour toute la classe
+                </button>
+            </div>
+
+            <div
+                style="background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); border: 1px solid var(--border);">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h3 style="margin: 0; color: var(--primary); font-size: 1.3em;">📊 Tableau de Suivi des
+                            Documents & Signatures (Classe)</h3>
+                        <p style="margin: 4px 0 0; font-size: 0.88em; color: var(--text-secondary);">Ce tableau
+                            récapitule uniquement les suivis créés à l'échelle de la classe entière. Cliquez sur les
+                            cases pour valider le retour.</p>
+                    </div>
+                    <div id="fiche-classe-stats-badge"
+                        style="background: rgba(52, 152, 219, 0.1); color: var(--primary); padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; border: 1px solid var(--border);">
+                        0 suivi de classe
+                    </div>
+                </div>
+
+                <div id="table-suivi-classe-container" style="overflow-x: auto; max-width: 100%;">
+                    <!-- Table matrix dynamic content -->
                 </div>
             </div>
         </div>
@@ -2181,6 +2277,97 @@
                         💾 Enregistrer
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PREVIEW DOCUMENT -->
+    <div id="modal-preview-doc"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:3000; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+        <div
+            style="background:var(--bg, #f4f7f6); width:95%; max-width:1100px; height:92vh; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 15px 40px rgba(0,0,0,0.4);">
+            <!-- Header -->
+            <div
+                style="padding:15px 25px; background:var(--primary, #2c3e50); color:white; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:10px; overflow:hidden;">
+                    <span id="modal-preview-doc-icon" style="font-size:1.4em;">📄</span>
+                    <h3 id="modal-preview-doc-title"
+                        style="margin:0; font-size:1.2em; font-weight:700; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
+                        Aperçu du document</h3>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <button id="modal-preview-doc-dl" class="btn-green"
+                        style="padding:6px 14px; font-size:0.88em; border-radius:6px; font-weight:bold;">⬇️
+                        Télécharger</button>
+                    <button onclick="fermerModalPreviewDoc()"
+                        style="background:none; border:none; color:white; font-size:2.2em; cursor:pointer; line-height:1; padding:0 5px;">&times;</button>
+                </div>
+            </div>
+            <!-- Body -->
+            <div id="modal-preview-doc-body"
+                style="flex:1; padding:20px; background:#e2e8f0; display:flex; justify-content:center; align-items:center; overflow:auto;">
+                <!-- Contenu dynamique (iframe, img, text, msg) -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CREATION SUIVI DOCUMENT -->
+    <div id="modal-suivi-doc"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+        <div
+            style="background:var(--bg, #f4f7f6); width:95%; max-width:550px; border-radius:18px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 15px 40px rgba(0,0,0,0.4); border: 1px solid var(--border);">
+            <!-- Header -->
+            <div
+                style="padding:18px 25px; background:linear-gradient(135deg, #1e3a8a, #0284c7); color:white; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:1.5em;">📋</span>
+                    <h3 id="modal-suivi-doc-title" style="margin:0; font-size:1.25em; font-weight:700; color:white;">
+                        Nouveau suivi de document</h3>
+                </div>
+                <button onclick="fermerModalSuiviDoc()"
+                    style="background:none; border:none; color:white; font-size:2em; cursor:pointer; line-height:1;">&times;</button>
+            </div>
+            <!-- Body -->
+            <div style="padding:25px; display:flex; flex-direction:column; gap:15px; background:white;">
+                <input type="hidden" id="suivi-doc-target-scope" value="classe">
+
+                <div class="form-group" style="text-align:left; margin:0;">
+                    <label style="font-weight:bold; font-size:0.9em; margin-bottom:5px;">Intitulé du document / de la
+                        demande <span style="color:red">*</span> :</label>
+                    <input type="text" id="suivi-doc-intitule"
+                        placeholder="ex: Fiche d'urgence, Droit à l'image, Signature carnet..."
+                        style="width:100%; box-sizing:border-box;">
+                </div>
+
+                <div class="form-group" style="text-align:left; margin:0;">
+                    <label style="font-weight:bold; font-size:0.9em; margin-bottom:5px;">Type de suivi <span
+                            style="color:red">*</span> :</label>
+                    <select id="suivi-doc-type" style="width:100%; box-sizing:border-box;">
+                        <option value="distribue_recupere">📥 Document distribué à récupérer (avec distribution)
+                        </option>
+                        <option value="recupere_seul">📄 Document à récupérer (ex: attestation, photo...)</option>
+                        <option value="signature">✍️ Vérification de signature (ex: carnet, bulletin...)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="text-align:left; margin:0;">
+                    <label style="font-weight:bold; font-size:0.9em; margin-bottom:5px;">Date limite de rendu ou de
+                        vérification (optionnelle) :</label>
+                    <input type="date" id="suivi-doc-datelimite" style="width:100%; box-sizing:border-box;">
+                </div>
+
+                <div id="suivi-doc-scope-info"
+                    style="background:#e0f2fe; color:#0369a1; padding:12px; border-radius:10px; font-size:0.85em; font-weight:600; text-align:left;">
+                    ℹ️ Ce suivi sera créé pour toute la classe.
+                </div>
+            </div>
+            <!-- Footer -->
+            <div
+                style="padding:15px 25px; background:#f8fafc; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn-red" onclick="fermerModalSuiviDoc()"
+                    style="padding:8px 16px; font-size:0.9em;">Annuler</button>
+                <button class="btn-green" onclick="sauvegarderSuiviDoc()"
+                    style="padding:8px 20px; font-size:0.9em; font-weight:bold;">💾 Valider et créer</button>
             </div>
         </div>
     </div>
@@ -2999,6 +3186,29 @@
                     supprimerEleve(e.id);
                 };
             });
+
+            // Carte spéciale : FICHE CLASSE (Récapitulatif général de la classe)
+            const classDiv = document.createElement('div');
+            classDiv.className = 'eleve-item';
+            classDiv.id = 'eleve-card-classe';
+            classDiv.style.position = 'relative';
+            classDiv.style.background = 'linear-gradient(135deg, #1e3a8a, #0284c7)';
+            classDiv.style.color = 'white';
+            classDiv.style.boxShadow = '0 6px 18px rgba(30,58,138,0.3)';
+            classDiv.style.border = '2px solid rgba(255,255,255,0.3)';
+            classDiv.onclick = function () { ouvrirFicheClasse(); };
+
+            classDiv.innerHTML = `
+                <div>
+                    <div style="width:56px; height:56px; border-radius:50%; background:rgba(255,255,255,0.2); color:white; display:flex; justify-content:center; align-items:center; font-size:1.6rem; margin:0 auto 10px; border:2px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.2);">🏫</div>
+                    <strong style="color: white; font-size: 1.05em; display: block;">FICHE CLASSE</strong>
+                    <span style="color: rgba(255,255,255,0.85); display:block; font-weight:600; font-size: 0.85em;">Suivi global de la classe</span>
+                </div>
+                <div class="card-actions" style="justify-content: center; margin-top: 10px;">
+                    <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; font-size: 0.78em; font-weight: bold; color: white;">📊 Synthèse Documents</span>
+                </div>
+            `;
+            container.appendChild(classDiv);
         }
 
         function supprimerEleve(id) {
@@ -3538,6 +3748,12 @@
 
             // Charger l'onglet Orientation
             chargerSectionOrientation(e);
+
+            // Charger l'onglet Documents
+            chargerSectionDocuments(e.id);
+
+            // Charger le suivi des documents/signatures de l'élève
+            chargerSuiviDocEleve(e.id);
 
             document.getElementById('details-stables').innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border); padding-bottom:10px; margin-bottom:15px;">
@@ -5469,6 +5685,9 @@
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             evt.currentTarget.classList.add('active');
+            if (tabId === 'f-documents' && typeof indexActuel !== 'undefined' && eleves[indexActuel]) {
+                chargerSectionDocuments(eleves[indexActuel].id);
+            }
         }
 
         function fermerFiche() {
@@ -7056,8 +7275,732 @@
         function resetApp() {
             showConfirm("Réinitialisation", "Êtes-vous sûr de vouloir tout supprimer ? Cette action est irréversible.", () => {
                 localStorage.clear();
+                try { indexedDB.deleteDatabase('CarnetBordPP_DocsDB'); } catch (e) { }
                 location.reload();
             });
+        }
+
+        /* --- GESTION DES DOCUMENTS ÉLÈVE (INDEXEDDB) --- */
+        let docsDB = null;
+
+        function initDocsDB() {
+            return new Promise((resolve, reject) => {
+                if (docsDB) return resolve(docsDB);
+                const request = indexedDB.open('CarnetBordPP_DocsDB', 1);
+                request.onupgradeneeded = function (e) {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('documents')) {
+                        const store = db.createObjectStore('documents', { keyPath: 'id' });
+                        store.createIndex('eleveId', 'eleveId', { unique: false });
+                    }
+                };
+                request.onsuccess = function (e) {
+                    docsDB = e.target.result;
+                    resolve(docsDB);
+                };
+                request.onerror = function (e) {
+                    console.error("Erreur d'ouverture IndexedDB pour les documents", e);
+                    reject(e);
+                };
+            });
+        }
+
+        async function sauvegarderDocumentDB(docObj) {
+            const db = await initDocsDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('documents', 'readwrite');
+                const store = tx.objectStore('documents');
+                const req = store.put(docObj);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = (e) => reject(e);
+            });
+        }
+
+        async function recupererDocumentsEleveDB(eleveId) {
+            try {
+                const db = await initDocsDB();
+                return new Promise((resolve) => {
+                    const tx = db.transaction('documents', 'readonly');
+                    const store = tx.objectStore('documents');
+                    const index = store.index('eleveId');
+                    const req = index.getAll(eleveId);
+                    req.onsuccess = () => resolve(req.result || []);
+                    req.onerror = () => resolve([]);
+                });
+            } catch (err) {
+                console.error("Erreur récupération documents", err);
+                return [];
+            }
+        }
+
+        async function recupererDocumentParIdDB(docId) {
+            try {
+                const db = await initDocsDB();
+                return new Promise((resolve) => {
+                    const tx = db.transaction('documents', 'readonly');
+                    const store = tx.objectStore('documents');
+                    const req = store.get(docId);
+                    req.onsuccess = () => resolve(req.result || null);
+                    req.onerror = () => resolve(null);
+                });
+            } catch (err) {
+                return null;
+            }
+        }
+
+        async function supprimerDocumentDB(docId) {
+            const db = await initDocsDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('documents', 'readwrite');
+                const store = tx.objectStore('documents');
+                const req = store.delete(docId);
+                req.onsuccess = () => resolve();
+                req.onerror = (e) => reject(e);
+            });
+        }
+
+        function formatFileSize(bytes) {
+            if (!bytes || bytes === 0) return '0 Octet';
+            const k = 1024;
+            const sizes = ['Octets', 'Ko', 'Mo', 'Go'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function getDocTypeIcon(type, name) {
+            const ext = name ? name.split('.').pop().toLowerCase() : '';
+            if (type.includes('pdf') || ext === 'pdf') return { icon: '📄', color: '#e74c3c' };
+            if (type.includes('image') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) return { icon: '🖼️', color: '#3498db' };
+            if (type.includes('word') || ['doc', 'docx'].includes(ext)) return { icon: '📝', color: '#2980b9' };
+            if (type.includes('excel') || type.includes('spreadsheet') || ['xls', 'xlsx', 'csv'].includes(ext)) return { icon: '📊', color: '#27ae60' };
+            if (type.includes('text') || ['txt', 'rtf', 'md'].includes(ext)) return { icon: '📜', color: '#f39c12' };
+            return { icon: '📎', color: '#7f8c8d' };
+        }
+
+        async function chargerSectionDocuments(eleveId) {
+            const container = document.getElementById('docs-list-container');
+            const badge = document.getElementById('doc-count-badge');
+            if (!container) return;
+
+            container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 20px;">Chargement des documents...</p>';
+
+            const docs = await recupererDocumentsEleveDB(eleveId);
+            if (badge) badge.textContent = `${docs.length} document${docs.length > 1 ? 's' : ''}`;
+
+            if (docs.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 30px; background: rgba(0,0,0,0.02); border-radius: 12px; border: 1px dashed var(--border);">
+                        <span style="font-size: 2.2em; display: block; margin-bottom: 8px;">📁</span>
+                        <p style="margin: 0; color: var(--text-secondary); font-style: italic;">Aucun document déposé pour cet élève.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort newest first
+            docs.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            let html = '';
+            docs.forEach(doc => {
+                const docMeta = getDocTypeIcon(doc.type, doc.name);
+                const dateStr = doc.date ? new Date(doc.date).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : 'Inconnu';
+                const sizeStr = formatFileSize(doc.size);
+
+                html += `
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: transform 0.2s, box-shadow 0.2s;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                                <span style="font-size: 2em; background: rgba(0,0,0,0.04); padding: 8px 12px; border-radius: 10px;">${docMeta.icon}</span>
+                                <div style="min-width: 0; flex: 1;">
+                                    <h4 style="margin: 0; font-size: 0.95em; font-weight: 700; color: var(--primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="${escapeHTML(doc.name)}">${escapeHTML(doc.name)}</h4>
+                                    <span style="font-size: 0.78em; color: var(--text-secondary); display: block; margin-top: 2px;">${sizeStr} • ${dateStr}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 6px; margin-top: 12px; border-top: 1px solid #f0f0f0; padding-top: 10px;">
+                            <button class="btn-tiny btn-blue" onclick="visualiserDocument('${doc.id}')" style="flex: 1; padding: 6px; font-size: 0.82em; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Visualiser">
+                                👁️ Aperçu
+                            </button>
+                            <button class="btn-tiny btn-green" onclick="telechargerDocument('${doc.id}')" style="padding: 6px 10px; font-size: 0.82em;" title="Télécharger">
+                                ⬇️
+                            </button>
+                            <button class="btn-tiny btn-red" onclick="supprimerDocumentConfirm('${doc.id}', '${escapeHTML(doc.name.replace(/'/g, "\\'"))}')" style="padding: 6px 10px; font-size: 0.82em;" title="Supprimer">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function handleDocDragOver(evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            const dz = document.getElementById('dropzone-documents');
+            if (dz) {
+                dz.style.background = 'rgba(52, 152, 219, 0.12)';
+                dz.style.borderColor = 'var(--primary-dark, #1d4ed8)';
+            }
+        }
+
+        function handleDocDragLeave(evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            const dz = document.getElementById('dropzone-documents');
+            if (dz) {
+                dz.style.background = 'rgba(52, 152, 219, 0.04)';
+                dz.style.borderColor = 'var(--primary)';
+            }
+        }
+
+        function handleDocDrop(evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            handleDocDragLeave(evt);
+            if (evt.dataTransfer && evt.dataTransfer.files && evt.dataTransfer.files.length > 0) {
+                traiterFilesUpload(evt.dataTransfer.files);
+            }
+        }
+
+        function traiterUploadDocuments(evt) {
+            if (evt.target && evt.target.files && evt.target.files.length > 0) {
+                traiterFilesUpload(evt.target.files);
+                evt.target.value = ''; // Reset input
+            }
+        }
+
+        async function traiterFilesUpload(filesList) {
+            if (typeof indexActuel === 'undefined' || !eleves[indexActuel]) {
+                showModal("Erreur", "Aucun élève sélectionné.");
+                return;
+            }
+
+            const eleve = eleves[indexActuel];
+            let count = 0;
+
+            for (let i = 0; i < filesList.length; i++) {
+                const file = filesList[i];
+                try {
+                    const base64Data = await readAsDataURLPromise(file);
+                    const docObj = {
+                        id: 'doc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+                        eleveId: eleve.id,
+                        name: file.name,
+                        type: file.type || 'application/octet-stream',
+                        size: file.size,
+                        date: new Date().toISOString(),
+                        data: base64Data
+                    };
+                    await sauvegarderDocumentDB(docObj);
+                    count++;
+                } catch (err) {
+                    console.error("Erreur lors de la lecture du fichier", file.name, err);
+                }
+            }
+
+            if (count > 0) {
+                chargerSectionDocuments(eleve.id);
+                showModal("Succès", `${count} document${count > 1 ? 's ajoutés' : ' ajouté'} avec succès pour ${eleve.prenom} ${eleve.nom} !`);
+            }
+        }
+
+        function readAsDataURLPromise(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = (e) => reject(e);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function visualiserDocument(docId) {
+            const doc = await recupererDocumentParIdDB(docId);
+            if (!doc) {
+                showModal("Erreur", "Impossible de retrouver ce document.");
+                return;
+            }
+
+            const modal = document.getElementById('modal-preview-doc');
+            const titleEl = document.getElementById('modal-preview-doc-title');
+            const iconEl = document.getElementById('modal-preview-doc-icon');
+            const bodyEl = document.getElementById('modal-preview-doc-body');
+            const dlBtn = document.getElementById('modal-preview-doc-dl');
+
+            if (!modal || !bodyEl) return;
+
+            const docMeta = getDocTypeIcon(doc.type, doc.name);
+            if (iconEl) iconEl.textContent = docMeta.icon;
+            if (titleEl) titleEl.textContent = doc.name;
+
+            if (dlBtn) {
+                dlBtn.onclick = () => telechargerDocument(docId);
+            }
+
+            bodyEl.innerHTML = '';
+            const ext = doc.name.split('.').pop().toLowerCase();
+
+            if (doc.type.includes('pdf') || ext === 'pdf') {
+                bodyEl.innerHTML = `<iframe src="${doc.data}" style="width:100%; height:100%; border:none; border-radius:8px; background:white;"></iframe>`;
+            } else if (doc.type.includes('image') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
+                bodyEl.innerHTML = `<img src="${doc.data}" alt="${escapeHTML(doc.name)}" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);" />`;
+            } else if (doc.type.includes('text') || ['txt', 'csv', 'json', 'md', 'log'].includes(ext)) {
+                try {
+                    const textContent = atob(doc.data.split(',')[1]);
+                    bodyEl.innerHTML = `<pre style="width:100%; height:100%; box-sizing:border-box; white-space:pre-wrap; background:white; padding:20px; border-radius:8px; overflow:auto; margin:0; font-family:monospace; font-size:0.9em; color:#333;">${escapeHTML(textContent)}</pre>`;
+                } catch (e) {
+                    bodyEl.innerHTML = `<iframe src="${doc.data}" style="width:100%; height:100%; border:none; border-radius:8px; background:white;"></iframe>`;
+                }
+            } else {
+                bodyEl.innerHTML = `
+                    <div style="text-align:center; background:white; padding:40px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1); max-width:450px;">
+                        <span style="font-size:3.5em; display:block; margin-bottom:15px;">${docMeta.icon}</span>
+                        <h4 style="margin:0 0 10px; color:var(--primary); font-size:1.1em;">${escapeHTML(doc.name)}</h4>
+                        <p style="margin:0 0 20px; font-size:0.9em; color:var(--text-secondary);">L'aperçu direct dans le navigateur n'est pas disponible pour ce type de fichier (${ext.toUpperCase()}).</p>
+                        <button class="btn-green" onclick="telechargerDocument('${doc.id}')" style="padding:10px 20px; font-weight:bold; font-size:0.95em;">
+                            ⬇️ Télécharger le fichier
+                        </button>
+                    </div>
+                `;
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function fermerModalPreviewDoc() {
+            const modal = document.getElementById('modal-preview-doc');
+            const bodyEl = document.getElementById('modal-preview-doc-body');
+            if (modal) modal.style.display = 'none';
+            if (bodyEl) bodyEl.innerHTML = '';
+        }
+
+        async function telechargerDocument(docId) {
+            const doc = await recupererDocumentParIdDB(docId);
+            if (!doc || !doc.data) {
+                showModal("Erreur", "Impossible d'importer le fichier.");
+                return;
+            }
+            const link = document.createElement('a');
+            link.href = doc.data;
+            link.download = doc.name || "document";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function supprimerDocumentConfirm(docId, docName) {
+            showConfirm("Supprimer le document", `Voulez-vous vraiment supprimer définitivement le document <b>${escapeHTML(docName)}</b> ?`, async () => {
+                try {
+                    await supprimerDocumentDB(docId);
+                    if (typeof indexActuel !== 'undefined' && eleves[indexActuel]) {
+                        chargerSectionDocuments(eleves[indexActuel].id);
+                    }
+                    showModal("Succès", "Document supprimé.");
+                } catch (e) {
+                    showModal("Erreur", "Erreur lors de la suppression du document.");
+                }
+            });
+        }
+
+        /* --- GESTION DU SUIVI DE DOCUMENTS & SIGNATURES --- */
+        function getDocTrackings() {
+            return JSON.parse(localStorage.getItem('pp_doc_trackings')) || [];
+        }
+
+        function saveDocTrackings(trackings) {
+            localStorage.setItem('pp_doc_trackings', JSON.stringify(trackings));
+        }
+
+        function ouvrirFicheClasse() {
+            document.getElementById('vue-liste').style.display = 'none';
+            document.getElementById('vue-fiche').style.display = 'none';
+            document.getElementById('vue-fiche-classe').style.display = 'block';
+            document.getElementById('btn-retour-home-liste').style.display = 'none';
+            chargerVueFicheClasse();
+        }
+
+        function fermerFicheClasse() {
+            document.getElementById('vue-fiche-classe').style.display = 'none';
+            document.getElementById('vue-liste').style.display = 'block';
+            document.getElementById('btn-retour-home-liste').style.display = 'inline-block';
+        }
+
+        function ouvrirModalCreationSuivi(scope) {
+            const modal = document.getElementById('modal-suivi-doc');
+            const targetScope = document.getElementById('suivi-doc-target-scope');
+            const scopeInfo = document.getElementById('suivi-doc-scope-info');
+            const titleEl = document.getElementById('modal-suivi-doc-title');
+
+            if (!modal) return;
+
+            document.getElementById('suivi-doc-intitule').value = '';
+            document.getElementById('suivi-doc-type').value = 'distribue_recupere';
+            document.getElementById('suivi-doc-datelimite').value = '';
+
+            targetScope.value = scope;
+            if (scope === 'classe') {
+                if (titleEl) titleEl.textContent = "Nouveau suivi de classe (Toute la classe)";
+                if (scopeInfo) scopeInfo.innerHTML = "ℹ️ Ce suivi s'appliquera automatiquement à <b>tous les élèves de la classe</b> et figurera sur la Fiche Classe.";
+            } else {
+                const currentEleve = (typeof indexActuel !== 'undefined' && eleves[indexActuel]) ? eleves[indexActuel] : null;
+                const nomEleve = currentEleve ? `${currentEleve.prenom} ${currentEleve.nom}` : "cet élève";
+                if (titleEl) titleEl.textContent = `Nouveau suivi individuel (${nomEleve})`;
+                if (scopeInfo) scopeInfo.innerHTML = `ℹ️ Ce suivi sera enregistré <b>uniquement pour ${escapeHTML(nomEleve)}</b> et ne figurera pas sur la Fiche Classe.`;
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function fermerModalSuiviDoc() {
+            const modal = document.getElementById('modal-suivi-doc');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function sauvegarderSuiviDoc() {
+            const intitule = document.getElementById('suivi-doc-intitule').value.trim();
+            const type = document.getElementById('suivi-doc-type').value;
+            const dateLimite = document.getElementById('suivi-doc-datelimite').value;
+            const scope = document.getElementById('suivi-doc-target-scope').value;
+
+            if (!intitule) {
+                showModal("Champ requis", "Veuillez saisir un intitulé pour le document ou la signature.");
+                return;
+            }
+
+            let eleveIdTarget = null;
+            if (scope === 'eleve') {
+                if (typeof indexActuel === 'undefined' || !eleves[indexActuel]) {
+                    showModal("Erreur", "Aucun élève sélectionné.");
+                    return;
+                }
+                eleveIdTarget = eleves[indexActuel].id;
+            }
+
+            const trackings = getDocTrackings();
+            const newTracking = {
+                id: 'track_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+                scope: scope, // 'classe' or 'eleve'
+                eleveId: eleveIdTarget, // null if classe, eleve.id if eleve
+                intitule: intitule,
+                type: type, // 'distribue_recupere', 'recupere_seul', 'signature'
+                dateLimite: dateLimite || null,
+                statuts: {}, // { eleveId: { distribue: boolean, statut: 'attente'|'rendu', date: string } }
+                dateCreation: new Date().toISOString()
+            };
+
+            // Init status for students
+            if (scope === 'classe') {
+                eleves.forEach(el => {
+                    newTracking.statuts[el.id] = { distribue: false, statut: 'attente', date: null };
+                });
+            } else if (eleveIdTarget) {
+                newTracking.statuts[eleveIdTarget] = { distribue: false, statut: 'attente', date: null };
+            }
+
+            trackings.push(newTracking);
+            saveDocTrackings(trackings);
+            fermerModalSuiviDoc();
+
+            if (scope === 'classe') {
+                if (document.getElementById('vue-fiche-classe').style.display === 'block') {
+                    chargerVueFicheClasse();
+                }
+                showModal("Succès", `Le suivi "${intitule}" a été créé pour toute la classe !`);
+            } else {
+                if (eleveIdTarget) {
+                    chargerSuiviDocEleve(eleveIdTarget);
+                }
+                showModal("Succès", `Le suivi "${intitule}" a été ajouté pour cet élève !`);
+            }
+        }
+
+        function toggleDocDistribue(trackingId, eleveId) {
+            const trackings = getDocTrackings();
+            const t = trackings.find(x => x.id === trackingId);
+            if (!t) return;
+
+            if (!t.statuts) t.statuts = {};
+            if (!t.statuts[eleveId]) t.statuts[eleveId] = { distribue: false, statut: 'attente', date: null };
+
+            const cur = t.statuts[eleveId];
+            cur.distribue = !cur.distribue;
+            if (!cur.distribue) {
+                cur.statut = 'attente';
+            }
+
+            saveDocTrackings(trackings);
+            refreshTrackingsUI(eleveId);
+        }
+
+        function toggleDocRendu(trackingId, eleveId) {
+            const trackings = getDocTrackings();
+            const t = trackings.find(x => x.id === trackingId);
+            if (!t) return;
+
+            if (!t.statuts) t.statuts = {};
+            if (!t.statuts[eleveId]) t.statuts[eleveId] = { distribue: false, statut: 'attente', date: null };
+
+            const cur = t.statuts[eleveId];
+            const nextStatut = cur.statut === 'rendu' ? 'attente' : 'rendu';
+            cur.statut = nextStatut;
+            cur.date = nextStatut === 'rendu' ? new Date().toISOString() : null;
+
+            if (nextStatut === 'rendu') {
+                cur.distribue = true;
+            }
+
+            saveDocTrackings(trackings);
+            refreshTrackingsUI(eleveId);
+        }
+
+        function refreshTrackingsUI(eleveId) {
+            if (document.getElementById('vue-fiche-classe').style.display === 'block') {
+                chargerVueFicheClasse();
+            }
+            if (typeof indexActuel !== 'undefined' && eleves[indexActuel] && eleves[indexActuel].id === eleveId) {
+                chargerSuiviDocEleve(eleveId);
+            }
+        }
+
+        function supprimerTrackingDoc(trackingId) {
+            showConfirm("Suppression du suivi", "Voulez-vous vraiment supprimer ce suivi de document ?", () => {
+                let trackings = getDocTrackings();
+                trackings = trackings.filter(x => x.id !== trackingId);
+                saveDocTrackings(trackings);
+
+                if (document.getElementById('vue-fiche-classe').style.display === 'block') {
+                    chargerVueFicheClasse();
+                }
+                if (typeof indexActuel !== 'undefined' && eleves[indexActuel]) {
+                    chargerSuiviDocEleve(eleves[indexActuel].id);
+                }
+            });
+        }
+
+        function getTrackingTypeLabel(type) {
+            if (type === 'distribue_recupere') return { label: 'Doc distribué à récupérer', icon: '📥', color: '#2563eb' };
+            if (type === 'recupere_seul') return { label: 'Doc à récupérer', icon: '📄', color: '#d97706' };
+            if (type === 'signature') return { label: 'Vérification signature', icon: '✍️', color: '#7c3aed' };
+            return { label: 'Suivi', icon: '📋', color: '#475569' };
+        }
+
+        function chargerSuiviDocEleve(eleveId) {
+            const container = document.getElementById('eleve-suivi-docs-container');
+            if (!container) return;
+
+            const trackings = getDocTrackings();
+            const eleveTrackings = trackings.filter(t => t.scope === 'classe' || (t.scope === 'eleve' && String(t.eleveId) === String(eleveId)));
+
+            if (eleveTrackings.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 20px; background: rgba(0,0,0,0.02); border-radius: 10px; border: 1px dashed var(--border);">
+                        <p style="margin: 0; color: var(--text-secondary); font-style: italic; font-size: 0.9em;">Aucun document ou signature en suivi pour le moment.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            eleveTrackings.forEach(t => {
+                const tMeta = getTrackingTypeLabel(t.type);
+                const rawObj = (t.statuts && t.statuts[eleveId]) ? t.statuts[eleveId] : { statut: 'attente', date: null, distribue: false };
+                const isRendu = rawObj.statut === 'rendu';
+                const isDistribue = rawObj.distribue || isRendu;
+
+                let isLate = false;
+                if (!isRendu && t.dateLimite && t.dateLimite < todayStr) {
+                    isLate = true;
+                }
+
+                let badgeScope = t.scope === 'classe'
+                    ? `<span style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;">🏫 Classe</span>`
+                    : `<span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;">👤 Individuel</span>`;
+
+                let actionButtonsHtml = '';
+                if (t.type === 'distribue_recupere') {
+                    actionButtonsHtml = `
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <button class="${isDistribue ? 'btn-green' : 'btn-red'}" onclick="toggleDocDistribue('${t.id}', ${eleveId})" style="padding: 6px 12px; font-size: 0.82em; font-weight: bold; border-radius: 8px;">
+                                ${isDistribue ? '📤 Distribué ✅' : '📤 Non distribué ❌'}
+                            </button>
+                            <button class="${isRendu ? 'btn-green' : (isLate ? 'btn-red' : 'btn-blue')}" onclick="toggleDocRendu('${t.id}', ${eleveId})" style="padding: 6px 12px; font-size: 0.82em; font-weight: bold; border-radius: 8px;">
+                                ${isRendu ? '✅ Rendu / Récupéré' : (isLate ? '🔴 En retard (Non rendu)' : '📥 À récupérer')}
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    actionButtonsHtml = `
+                        <button class="${isRendu ? 'btn-green' : (isLate ? 'btn-red' : 'btn-blue')}" onclick="toggleDocRendu('${t.id}', ${eleveId})" style="padding: 6px 12px; font-size: 0.82em; font-weight: bold; border-radius: 8px;">
+                            ${isRendu ? '✅ Rendu / Vérifié' : (isLate ? '🔴 En retard' : '⏳ En attente')}
+                        </button>
+                    `;
+                }
+
+                html += `
+                    <div style="background: white; border: 1px solid ${isLate ? '#fca5a5' : 'var(--border)'}; border-radius: 10px; padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+                        <div style="display: flex; align-items: center; gap: 12px; min-width: 200px; flex: 1;">
+                            <span style="font-size: 1.6em;">${tMeta.icon}</span>
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <strong style="color: var(--primary); font-size: 0.95em;">${escapeHTML(t.intitule)}</strong>
+                                    ${badgeScope}
+                                </div>
+                                <span style="font-size: 0.78em; color: var(--text-secondary); display: block; margin-top: 2px;">
+                                    ${tMeta.label}${t.dateLimite ? ' • Limite: ' + new Date(t.dateLimite).toLocaleDateString('fr-FR') : ''}
+                                </span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            ${actionButtonsHtml}
+                            ${t.scope === 'eleve' ? `<button class="btn-tiny btn-red" onclick="supprimerTrackingDoc('${t.id}')" title="Supprimer" style="padding: 6px 8px;">🗑️</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function chargerVueFicheClasse() {
+            const container = document.getElementById('table-suivi-classe-container');
+            const badge = document.getElementById('fiche-classe-stats-badge');
+            if (!container) return;
+
+            const trackings = getDocTrackings().filter(t => t.scope === 'classe');
+            if (badge) badge.textContent = `${trackings.length} suivi${trackings.length > 1 ? 's' : ''} de classe`;
+
+            if (eleves.length === 0) {
+                container.innerHTML = `<p style="text-align: center; color: var(--text-secondary); padding: 30px;">Aucun élève inscrit dans la classe.</p>`;
+                return;
+            }
+
+            if (trackings.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; background: rgba(0,0,0,0.02); border-radius: 12px; border: 1px dashed var(--border);">
+                        <span style="font-size: 2.5em; display: block; margin-bottom: 10px;">📊</span>
+                        <h4 style="margin: 0 0 6px; color: var(--primary);">Aucun suivi de document pour la classe</h4>
+                        <p style="margin: 0 0 15px; color: var(--text-secondary); font-size: 0.9em;">Cliquez sur le bouton ci-dessus pour créer un suivi s'appliquant à tous les élèves.</p>
+                        <button class="btn-green" onclick="ouvrirModalCreationSuivi('classe')" style="padding: 8px 18px; font-weight: bold; border-radius: 8px;">
+                            ➕ Créer un suivi pour toute la classe
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sorted students A-Z by Nom
+            const sortedEleves = [...eleves].sort((a, b) => a.nom.localeCompare(b.nom));
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            let tableHtml = `
+                <table style="width: 100%; border-collapse: collapse; min-width: 650px; font-size: 0.9em; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                    <thead>
+                        <tr style="background: var(--primary, #2c3e50); color: white;">
+                            <th style="padding: 12px 15px; text-align: left; position: sticky; left: 0; background: var(--primary, #2c3e50); z-index: 5; border-right: 2px solid rgba(255,255,255,0.2);">Élèves (${sortedEleves.length})</th>
+            `;
+
+            trackings.forEach(t => {
+                const tMeta = getTrackingTypeLabel(t.type);
+                let countDistribue = 0;
+                let countRendu = 0;
+                sortedEleves.forEach(el => {
+                    const st = t.statuts && t.statuts[el.id] ? t.statuts[el.id] : {};
+                    if (st.distribue || st.statut === 'rendu') countDistribue++;
+                    if (st.statut === 'rendu') countRendu++;
+                });
+                const pctRendu = sortedEleves.length > 0 ? Math.round((countRendu / sortedEleves.length) * 100) : 0;
+                const isLateGlobal = t.dateLimite && t.dateLimite < todayStr && countRendu < sortedEleves.length;
+
+                let statsBadgeHeader = '';
+                if (t.type === 'distribue_recupere') {
+                    statsBadgeHeader = `
+                        <span style="font-size: 0.75em; background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 8px; margin-top: 3px;">
+                            📤 Dist: ${countDistribue}/${sortedEleves.length} | ✅ Rendu: ${countRendu}/${sortedEleves.length} (${pctRendu}%)
+                        </span>
+                    `;
+                } else {
+                    statsBadgeHeader = `
+                        <span style="font-size: 0.78em; background: ${pctRendu === 100 ? '#22c55e' : 'rgba(255,255,255,0.25)'}; padding: 2px 8px; border-radius: 10px; margin-top: 3px; font-weight: bold;">
+                            ${countRendu}/${sortedEleves.length} (${pctRendu}%)
+                        </span>
+                    `;
+                }
+
+                tableHtml += `
+                    <th style="padding: 12px 15px; text-align: center; border-right: 1px solid rgba(255,255,255,0.15); min-width: 190px; vertical-align: top;">
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span>${tMeta.icon}</span>
+                                <span style="font-weight: bold; font-size: 0.95em;">${escapeHTML(t.intitule)}</span>
+                                <button onclick="supprimerTrackingDoc('${t.id}')" title="Supprimer ce suivi" style="background: none; border: none; color: #fca5a5; cursor: pointer; font-size: 1.1em; padding: 0 2px;">&times;</button>
+                            </div>
+                            <span style="font-size: 0.78em; opacity: 0.85;">${tMeta.label}</span>
+                            ${t.dateLimite ? `<span style="font-size: 0.75em; background: ${isLateGlobal ? '#ef4444' : 'rgba(255,255,255,0.2)'}; padding: 2px 6px; border-radius: 8px;">📅 Limite: ${new Date(t.dateLimite).toLocaleDateString('fr-FR')}</span>` : ''}
+                            ${statsBadgeHeader}
+                        </div>
+                    </th>
+                `;
+            });
+
+            tableHtml += `
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            sortedEleves.forEach((el, index) => {
+                const bgRow = index % 2 === 0 ? '#ffffff' : '#f8fafc';
+                tableHtml += `
+                    <tr style="background: ${bgRow}; border-bottom: 1px solid var(--border, #e2e8f0);">
+                        <td style="padding: 10px 15px; font-weight: bold; color: var(--primary); position: sticky; left: 0; background: ${bgRow}; z-index: 4; border-right: 2px solid var(--border, #e2e8f0);">
+                            <a href="#" onclick="event.preventDefault(); ouvrirFiche(${el.id});" style="color: var(--primary); text-decoration: none; display: block;">
+                                ${escapeHTML(el.nom.toUpperCase())} ${escapeHTML(el.prenom)}
+                            </a>
+                        </td>
+                `;
+
+                trackings.forEach(t => {
+                    const st = (t.statuts && t.statuts[el.id]) ? t.statuts[el.id] : { statut: 'attente', distribue: false };
+                    const isRendu = st.statut === 'rendu';
+                    const isDistribue = st.distribue || isRendu;
+                    const isLate = !isRendu && t.dateLimite && t.dateLimite < todayStr;
+
+                    if (t.type === 'distribue_recupere') {
+                        tableHtml += `
+                            <td style="padding: 8px 10px; text-align: center; border-right: 1px solid var(--border, #e2e8f0);">
+                                <div style="display: flex; gap: 4px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                                    <button onclick="toggleDocDistribue('${t.id}', ${el.id})" title="${isDistribue ? 'Cliquer pour marquer non distribué' : 'Cliquer pour marquer distribué'}" style="border: none; cursor: pointer; padding: 4px 7px; border-radius: 6px; font-weight: bold; font-size: 0.78em; ${isDistribue ? 'background:#dcfce7; color:#166534;' : 'background:#fee2e2; color:#991b1b;'}">
+                                        ${isDistribue ? '📤 Dist.' : '📤 Non dist.'}
+                                    </button>
+                                    <button onclick="toggleDocRendu('${t.id}', ${el.id})" title="${isRendu ? 'Cliquer pour marquer non rendu' : 'Cliquer pour marquer rendu'}" style="border: none; cursor: pointer; padding: 4px 7px; border-radius: 6px; font-weight: bold; font-size: 0.78em; ${isRendu ? 'background:#dcfce7; color:#166534;' : (isLate ? 'background:#fee2e2; color:#991b1b;' : 'background:#ffedd5; color:#9a3412;')}">
+                                        ${isRendu ? '✅ Rendu' : (isLate ? '🔴 En retard' : '⏳ Attente')}
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                    } else {
+                        tableHtml += `
+                            <td style="padding: 8px 12px; text-align: center; border-right: 1px solid var(--border, #e2e8f0);">
+                                <button onclick="toggleDocRendu('${t.id}', ${el.id})" style="border: none; background: none; cursor: pointer; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 0.88em; transition: transform 0.1s; ${isRendu ? 'background:#dcfce7; color:#166534;' : (isLate ? 'background:#fee2e2; color:#991b1b;' : 'background:#ffedd5; color:#9a3412;')}">
+                                    ${isRendu ? '✅ Rendu' : (isLate ? '🔴 En retard' : '⏳ Attente')}
+                                </button>
+                            </td>
+                        `;
+                    }
+                });
+
+                tableHtml += `</tr>`;
+            });
+
+            tableHtml += `
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = tableHtml;
         }
 
         // Au démarrage
