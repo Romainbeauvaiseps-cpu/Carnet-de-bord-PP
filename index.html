@@ -1342,7 +1342,7 @@
             justify-content: center;
             gap: 30px;
             flex-wrap: wrap;
-            margin-top: 40px;
+            margin-top: 110px;
         }
 
         .btn-home {
@@ -1537,6 +1537,20 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        @keyframes pulseNotif {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.08);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
     </style>
 </head>
 
@@ -1554,25 +1568,29 @@
                 <span style="font-size:2em; display:block; margin-bottom:10px;">👤</span>
                 Élèves
             </button>
-            <button class="btn-home bg-pale-teal" onclick="showSection('section-equipe')">
-                <span style="font-size:2em; display:block; margin-bottom:10px;">👩‍🏫</span>
-                Équipe<br>pédagogique
+            <button class="btn-home" id="btn-home-fiche-classe"
+                style="background-color: #fff3e0; color: #e65100; border: 1px solid rgba(230, 81, 0, 0.2); position: relative;"
+                onclick="ouvrirFicheClasse()">
+                <span style="font-size:2em; display:block; margin-bottom:8px;">🏫</span>
+                Fiche Classe<br><small
+                    style="font-size:0.65em; font-weight:normal; opacity:0.85; display:block; margin-top:3px;">Suivi
+                    global de la classe</small>
             </button>
-        </div>
-
-        <!-- Bouton HVC centré en dessous -->
-        <div style="display: flex; justify-content: center; margin-top: 25px;">
             <button class="btn-home"
-                style="background-color: #e8f5e9; color: #2e7d32; border: 1px solid rgba(46, 125, 50, 0.2); width: 220px; height: 180px; border-radius: 24px;"
+                style="background-color: #e8f5e9; color: #2e7d32; border: 1px solid rgba(46, 125, 50, 0.2);"
                 onclick="showSection('section-hvc')">
                 <span style="font-size:2em; display:block; margin-bottom:8px;">💬</span>
                 HVC<br><small
                     style="font-size:0.65em; font-weight:normal; opacity:0.85; display:block; margin-top:3px;">Heures de
                     Vie de Classe</small>
             </button>
+            <button class="btn-home bg-pale-teal" onclick="showSection('section-equipe')">
+                <span style="font-size:2em; display:block; margin-bottom:10px;">👩‍🏫</span>
+                Équipe<br>pédagogique
+            </button>
         </div>
 
-        <div style="margin-top: 80px; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+        <div style="margin-top: 45px; display: flex; flex-direction: column; align-items: center; gap: 20px;">
             <!-- Actions secondaires (Administration) -->
             <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; max-width: 900px;">
                 <button class="btn-home"
@@ -2027,7 +2045,7 @@
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
                 <button onclick="fermerFicheClasse()" class="btn-blue"
-                    style="padding: 10px 20px; font-weight: bold; border-radius: 8px;">← Retour Liste</button>
+                    style="padding: 10px 20px; font-weight: bold; border-radius: 8px;">← Accueil</button>
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <span style="font-size: 1.8em;">🏫</span>
                     <h2 style="margin:0; color:var(--primary); font-size:1.8em; font-weight: 800;">Fiche Récapitulative
@@ -2750,6 +2768,10 @@
             }
 
             // Logique specifique
+            if (id === 'section-home') {
+                updateNotificationBadges();
+            }
+
             if (id === 'section-liste') {
                 chargerListe();
                 // Assurer que tout est visible
@@ -3246,6 +3268,8 @@
             const container = document.getElementById('liste-container');
             container.innerHTML = eleves.length === 0 ? "<p>Aucun élève inscrit.</p>" : "";
 
+            const trackings = getDocTrackings();
+
             // Tri alphabétique
             eleves.sort((a, b) => a.nom.localeCompare(b.nom)).forEach((e, idx) => {
                 const div = document.createElement('div');
@@ -3274,8 +3298,30 @@
                     avatarHtml = `<div style="width:56px; height:56px; border-radius:50%; background:${bgGrad}; color:white; display:flex; justify-content:center; align-items:center; font-weight:800; font-size:1.2rem; margin:0 auto 10px; border:2px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.15);">${escapeHTML(initials.toUpperCase())}</div>`;
                 }
 
+                // Notification badge pour cet élève
+                const eleveTrackings = trackings.filter(t =>
+                    t.scope === 'classe' || (t.scope === 'eleve' && String(t.eleveId) === String(e.id))
+                );
+                let countPendingEleve = 0;
+                eleveTrackings.forEach(t => {
+                    const st = (t.statuts && t.statuts[e.id]) ? t.statuts[e.id] : { statut: 'attente' };
+                    if (st.statut !== 'rendu') {
+                        countPendingEleve++;
+                    }
+                });
+
+                let notifBadgeEleveHtml = '';
+                if (countPendingEleve > 0) {
+                    notifBadgeEleveHtml = `
+                        <div class="notif-badge-eleve" title="${countPendingEleve} document(s) non rendu(s)" style="position: absolute; top: -8px; left: -8px; background: #ef4444; color: white; border-radius: 20px; min-width: 24px; height: 24px; padding: 0 6px; font-size: 0.8rem; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.45); border: 2.5px solid white; z-index: 12; animation: pulseNotif 2s infinite; pointer-events: none;">
+                            ${countPendingEleve}
+                        </div>
+                    `;
+                }
+
                 // HTML interne avec pastille de couleur en haut à droite
                 div.innerHTML = `
+                    ${notifBadgeEleveHtml}
                     <div class="card-color-picker-btn" id="color-btn-${e.id}" title="Changer la couleur de la fiche" style="position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border-radius: 50%; background: ${escapeHTML(bg)}; border: 2px solid rgba(0,0,0,0.25); box-shadow: 0 2px 5px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; transition: transform 0.2s;" onclick="toggleColorPalette(event, ${e.id})">
                         <span style="font-size: 11px; pointer-events: none;">🎨</span>
                     </div>
@@ -3322,28 +3368,7 @@
                 };
             });
 
-            // Carte spéciale : FICHE CLASSE (Récapitulatif général de la classe)
-            const classDiv = document.createElement('div');
-            classDiv.className = 'eleve-item';
-            classDiv.id = 'eleve-card-classe';
-            classDiv.style.position = 'relative';
-            classDiv.style.background = 'linear-gradient(135deg, #1e3a8a, #0284c7)';
-            classDiv.style.color = 'white';
-            classDiv.style.boxShadow = '0 6px 18px rgba(30,58,138,0.3)';
-            classDiv.style.border = '2px solid rgba(255,255,255,0.3)';
-            classDiv.onclick = function () { ouvrirFicheClasse(); };
-
-            classDiv.innerHTML = `
-                <div>
-                    <div style="width:56px; height:56px; border-radius:50%; background:rgba(255,255,255,0.2); color:white; display:flex; justify-content:center; align-items:center; font-size:1.6rem; margin:0 auto 10px; border:2px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.2);">🏫</div>
-                    <strong style="color: white; font-size: 1.05em; display: block;">FICHE CLASSE</strong>
-                    <span style="color: rgba(255,255,255,0.85); display:block; font-weight:600; font-size: 0.85em;">Suivi global de la classe</span>
-                </div>
-                <div class="card-actions" style="justify-content: center; margin-top: 10px;">
-                    <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; font-size: 0.78em; font-weight: bold; color: white;">📊 Synthèse Documents</span>
-                </div>
-            `;
-            container.appendChild(classDiv);
+            updateNotificationBadges();
         }
 
         function supprimerEleve(id) {
@@ -7793,6 +7818,7 @@
         }
 
         function ouvrirFicheClasse() {
+            showSection('section-liste');
             document.getElementById('vue-liste').style.display = 'none';
             document.getElementById('vue-fiche').style.display = 'none';
             document.getElementById('vue-fiche-classe').style.display = 'block';
@@ -7806,8 +7832,7 @@
 
         function fermerFicheClasse() {
             document.getElementById('vue-fiche-classe').style.display = 'none';
-            document.getElementById('vue-liste').style.display = 'block';
-            document.getElementById('btn-retour-home-liste').style.display = 'inline-block';
+            showSection('section-home');
         }
 
         // PROFIL CLASSE
@@ -8191,6 +8216,7 @@
 
             trackings.push(newTracking);
             saveDocTrackings(trackings);
+            updateNotificationBadges();
             fermerModalSuiviDoc();
 
             if (scope === 'classe') {
@@ -8245,7 +8271,44 @@
             refreshTrackingsUI(eleveId);
         }
 
+        function updateNotificationBadges() {
+            const trackings = getDocTrackings();
+
+            // 1. Badge notification pour la Fiche Classe (Page d'accueil)
+            const btnFicheClasse = document.getElementById('btn-home-fiche-classe');
+            if (btnFicheClasse) {
+                let existingBadge = document.getElementById('notif-badge-fiche-classe');
+                const classTrackings = trackings.filter(t => t.scope === 'classe');
+
+                let countMissingClassReturns = 0;
+                if (typeof eleves !== 'undefined' && eleves.length > 0) {
+                    classTrackings.forEach(t => {
+                        eleves.forEach(el => {
+                            const st = (t.statuts && t.statuts[el.id]) ? t.statuts[el.id] : { statut: 'attente' };
+                            if (st.statut !== 'rendu') {
+                                countMissingClassReturns++;
+                            }
+                        });
+                    });
+                }
+
+                if (countMissingClassReturns > 0) {
+                    if (!existingBadge) {
+                        existingBadge = document.createElement('div');
+                        existingBadge.id = 'notif-badge-fiche-classe';
+                        existingBadge.style.cssText = 'position: absolute; top: -10px; right: -10px; background: #ef4444; color: white; border-radius: 20px; min-width: 28px; height: 28px; padding: 0 8px; font-size: 0.9rem; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5); border: 3px solid white; z-index: 20; animation: pulseNotif 2s infinite; pointer-events: none;';
+                        btnFicheClasse.appendChild(existingBadge);
+                    }
+                    existingBadge.textContent = countMissingClassReturns;
+                    existingBadge.title = `${countMissingClassReturns} document(s) non rendu(s) par les élèves`;
+                } else if (existingBadge) {
+                    existingBadge.remove();
+                }
+            }
+        }
+
         function refreshTrackingsUI(eleveId) {
+            updateNotificationBadges();
             if (document.getElementById('vue-fiche-classe').style.display === 'block') {
                 chargerVueFicheClasse();
             }
@@ -8260,6 +8323,7 @@
                 trackings = trackings.filter(x => x.id !== trackingId);
                 saveDocTrackings(trackings);
 
+                updateNotificationBadges();
                 if (document.getElementById('vue-fiche-classe').style.display === 'block') {
                     chargerVueFicheClasse();
                 }
@@ -8497,6 +8561,7 @@
         // Au démarrage
         showSection('section-home');
         miseAJourBadgeRappels();
+        updateNotificationBadges();
     </script>
 </body>
 
