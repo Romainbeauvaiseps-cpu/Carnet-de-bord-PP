@@ -2378,6 +2378,103 @@
         </div>
     </div>
 
+    <!-- MODAL EXPORT PDF BILAN TRIMESTRIEL -->
+    <div id="modal-export-pdf-bilan"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2500; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+        <div
+            style="background:var(--bg, #f4f7f6); width:95%; max-width:1100px; height:92vh; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 15px 40px rgba(0,0,0,0.3);">
+            <!-- Header -->
+            <div
+                style="padding:15px 25px; background:var(--primary, #2c3e50); color:white; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:1.4em;">📊</span>
+                    <h3 id="modal-export-pdf-bilan-title" style="margin:0; font-size:1.25em; font-weight:700;">Export
+                        Bilan Trimestriel PDF</h3>
+                </div>
+                <button onclick="fermerModalExportPDFBilan()"
+                    style="background:none; border:none; color:white; font-size:2.2em; cursor:pointer; line-height:1; padding:0 10px;">&times;</button>
+            </div>
+
+            <!-- Body -->
+            <div style="flex:1; display:flex; overflow:hidden; gap:0;">
+                <!-- Left Controls Panel -->
+                <div
+                    style="width:310px; flex-shrink:0; background:#ffffff; padding:20px; border-right:1px solid #dfe6e9; display:flex; flex-direction:column; gap:15px; overflow-y:auto;">
+                    <h4
+                        style="margin:0; color:#1e293b; font-size:1.05em; font-weight:700; border-bottom:2px solid #e67e22; padding-bottom:8px;">
+                        ⚙️ Éléments à inclure</h4>
+
+                    <div style="display:flex; flex-direction:column; gap:12px; font-size:0.92em;">
+                        <label
+                            style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:#1e293b;">
+                            <input type="checkbox" id="pdf-trim-opt-identity" checked
+                                style="width:16px; height:16px; accent-color:#e67e22;"
+                                onchange="actualiserPrevisualisationPDFBilan()"> 👤 En-tête & Identité
+                        </label>
+                        <label
+                            style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:#1e293b;">
+                            <input type="checkbox" id="pdf-trim-opt-assiduite" checked
+                                style="width:16px; height:16px; accent-color:#e67e22;"
+                                onchange="actualiserPrevisualisationPDFBilan()"> 🚫 Absences & ⏰ Retards
+                        </label>
+                        <label
+                            style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:#1e293b;">
+                            <input type="checkbox" id="pdf-trim-opt-rang" checked
+                                style="width:16px; height:16px; accent-color:#e67e22;"
+                                onchange="actualiserPrevisualisationPDFBilan()"> 🏆 Classement / Rang
+                        </label>
+                        <label
+                            style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:#1e293b;">
+                            <input type="checkbox" id="pdf-trim-opt-moyenne" checked
+                                style="width:16px; height:16px; accent-color:#e67e22;"
+                                onchange="actualiserPrevisualisationPDFBilan()"> 📊 Moyenne générale & Matières
+                        </label>
+                        <label
+                            style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:#1e293b;">
+                            <input type="checkbox" id="pdf-trim-opt-graphique" checked
+                                style="width:16px; height:16px; accent-color:#e67e22;"
+                                onchange="actualiserPrevisualisationPDFBilan()"> 📈 Graphique des résultats
+                        </label>
+                        <label
+                            style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:#1e293b;">
+                            <input type="checkbox" id="pdf-trim-opt-journal" checked
+                                style="width:16px; height:16px; accent-color:#e67e22;"
+                                onchange="actualiserPrevisualisationPDFBilan()"> 🚨 Journal disciplinaire
+                        </label>
+                        <label
+                            style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:#1e293b;">
+                            <input type="checkbox" id="pdf-trim-opt-bulletin" checked
+                                style="width:16px; height:16px; accent-color:#e67e22;"
+                                onchange="actualiserPrevisualisationPDFBilan()"> 📝 Appréciation du bulletin
+                        </label>
+                    </div>
+
+                    <hr style="border:0; border-top:1px solid #dfe6e9; margin:5px 0;">
+
+                    <div style="display:flex; flex-direction:column; gap:10px; margin-top:auto;">
+                        <button class="btn-green" onclick="telechargerBilanTrimestrePDF()"
+                            style="padding:12px; font-weight:bold; border-radius:10px; display:flex; align-items:center; justify-content:center; gap:8px; font-size:0.95em; box-shadow:0 4px 12px rgba(46,204,113,0.3); border:none; cursor:pointer;">
+                            <span>📥</span> Télécharger le PDF
+                        </button>
+                        <button class="btn-blue" onclick="imprimerBilanTrimestrePDF()"
+                            style="padding:10px; font-weight:bold; border-radius:10px; display:flex; align-items:center; justify-content:center; gap:8px; font-size:0.92em; border:none; cursor:pointer;">
+                            <span>🖨️</span> Imprimer le bilan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Preview Area -->
+                <div
+                    style="flex:1; background:#eef2f5; padding:20px; overflow-y:auto; display:flex; justify-content:center; align-items:flex-start;">
+                    <div id="pdf-trim-preview-wrapper"
+                        style="width:100%; max-width:800px; background:white; box-shadow:0 8px 30px rgba(0,0,0,0.15); border-radius:4px; min-height:842px;">
+                        <div id="pdf-trim-export-preview-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL GESTION POLES ET MATIERES -->
     <div id="modal-gestion-poles"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2500; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
@@ -4089,7 +4186,7 @@
             if (!e.resultats) e.resultats = {};
             ['T1', 'T2', 'T3'].forEach(t => {
                 if (!e.resultats[t]) {
-                    e.resultats[t] = { moyenneG: "", abs: 0, retards: 0, notes: {}, punitions: {}, historique: [] };
+                    e.resultats[t] = { moyenneG: "", rang: "", abs: 0, retards: 0, notes: {}, punitions: {}, historique: [] };
                 } else {
                     // Safety for sub-properties
                     if (!e.resultats[t].notes) e.resultats[t].notes = {};
@@ -4098,6 +4195,7 @@
                     if (e.resultats[t].abs === undefined) e.resultats[t].abs = 0;
                     if (e.resultats[t].retards === undefined) e.resultats[t].retards = 0;
                     if (e.resultats[t].moyenneG === undefined) e.resultats[t].moyenneG = "";
+                    if (e.resultats[t].rang === undefined) e.resultats[t].rang = "";
                 }
             });
 
@@ -4213,7 +4311,7 @@
                             </button>
                         </div>
 
-                        <!-- Récapitulatif Assiduité -->
+                        <!-- Récapitulatif Assiduité & Classement -->
                         <div style="display: flex; gap: 15px; margin-bottom: 20px; background: rgba(231, 76, 60, 0.04); padding: 12px 20px; border-radius: 10px; border: 1px dashed rgba(231, 76, 60, 0.2); justify-content: flex-start; align-items: center; flex-wrap: wrap;">
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <span style="font-weight: bold; font-size: 0.9em; color: var(--text-secondary);">🚫 Absences globales :</span>
@@ -4223,6 +4321,11 @@
                                 <span style="font-weight: bold; font-size: 0.9em; color: var(--text-secondary);">⏰ Retards :</span>
                                 <span style="font-weight: bold; font-size: 1.1em; color: #e67e22;">${escapeHTML(String(res.retards))}</span>
                             </div>
+                            ${res.rang !== undefined && res.rang !== "" ? `
+                            <div style="display: flex; align-items: center; gap: 8px; margin-left: 20px;">
+                                <span style="font-weight: bold; font-size: 0.9em; color: var(--text-secondary);">🏆 Classement / Rang :</span>
+                                <span style="font-weight: bold; font-size: 1.1em; color: #8e44ad;">${escapeHTML(String(res.rang))}</span>
+                            </div>` : ''}
                         </div>
 
                         <div id="timeline-${trim}" class="timeline">
@@ -4234,8 +4337,9 @@
                         <div id="bulletin-view-${trim}" style="margin-bottom: 20px; text-align: right;">
                             <span style="font-size: 0.9em; color: #999; font-style: italic;">Vérification du bulletin...</span>
                         </div>
-                        <div class="summary-stats" style="grid-template-columns: 1fr; max-width: 200px; margin-bottom: 20px;">
+                        <div class="summary-stats" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); max-width: 360px; margin-bottom: 20px; gap: 15px;">
                             <div class="stat-item"><label>Moyenne Générale</label><input type="text" value="${escapeHTML(String(res.moyenneG))}" readonly class="${getNoteColor(res.moyenneG)}"></div>
+                            ${res.rang !== undefined && res.rang !== "" ? `<div class="stat-item"><label>Rang / Classement</label><input type="text" value="${escapeHTML(String(res.rang))}" readonly style="font-weight:bold; color: #8e44ad; text-align:center;"></div>` : ''}
                         </div>`;
 
                 // Matières
@@ -4280,7 +4384,7 @@
                          </div>
                      </div>
                      <div style="margin-top:35px; text-align:center; padding-top: 20px; border-top: 1px solid var(--border);">
-                         <button class="btn-orange" style="padding: 10px 24px; font-weight: bold; border-radius: 8px; font-size: 0.95em;" onclick="genererMessageBilan('${trim}')">📋 Copier Bilan pour Prof Principal / Parents</button>
+                         <button class="btn-orange" style="padding: 10px 24px; font-weight: bold; border-radius: 8px; font-size: 0.95em;" onclick="ouvrirModalExportPDFBilan('${trim}')">📄 Exporter Bilan PDF (${trim})</button>
                      </div>
                     </div>`;
 
@@ -4761,6 +4865,452 @@
             printWindow.document.close();
         }
 
+        // --- EXPORT PDF BILAN TRIMESTRIEL ---
+
+        let pdfExportCurrentTrim = 'T1';
+
+        function ouvrirModalExportPDFBilan(trim = 'T1', eleveId = null) {
+            pdfExportCurrentTrim = trim;
+            if (eleveId !== null) {
+                const idx = eleves.findIndex(e => e.id === eleveId);
+                if (idx !== -1) pdfExportCurrentIndex = idx;
+            } else if (indexActuel !== null) {
+                pdfExportCurrentIndex = indexActuel;
+            }
+
+            if (pdfExportCurrentIndex === null || !eleves[pdfExportCurrentIndex]) {
+                return showModal("Erreur", "Aucun élève sélectionné pour l'export.");
+            }
+
+            const e = eleves[pdfExportCurrentIndex];
+            const modalTitle = document.getElementById('modal-export-pdf-bilan-title');
+            if (modalTitle) {
+                modalTitle.textContent = `Export Bilan PDF (${trim}) - ${e.nom.toUpperCase()} ${e.prenom}`;
+            }
+
+            const modal = document.getElementById('modal-export-pdf-bilan');
+            if (modal) {
+                modal.style.display = 'flex';
+                actualiserPrevisualisationPDFBilan();
+            }
+        }
+
+        function fermerModalExportPDFBilan() {
+            const modal = document.getElementById('modal-export-pdf-bilan');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function getOptionsPDFExportBilan() {
+            return {
+                identity: document.getElementById('pdf-trim-opt-identity')?.checked ?? true,
+                assiduite: document.getElementById('pdf-trim-opt-assiduite')?.checked ?? true,
+                rang: document.getElementById('pdf-trim-opt-rang')?.checked ?? true,
+                moyenne: document.getElementById('pdf-trim-opt-moyenne')?.checked ?? true,
+                graphique: document.getElementById('pdf-trim-opt-graphique')?.checked ?? true,
+                journal: document.getElementById('pdf-trim-opt-journal')?.checked ?? true,
+                bulletin: document.getElementById('pdf-trim-opt-bulletin')?.checked ?? true
+            };
+        }
+
+        function actualiserPrevisualisationPDFBilan() {
+            if (pdfExportCurrentIndex === null || !eleves[pdfExportCurrentIndex]) return;
+            const e = eleves[pdfExportCurrentIndex];
+            const trim = pdfExportCurrentTrim || 'T1';
+            const opts = getOptionsPDFExportBilan();
+            const container = document.getElementById('pdf-trim-export-preview-content');
+            if (container) {
+                container.innerHTML = genererHTMLBilanTrimestrePDF(e, trim, opts);
+            }
+        }
+
+        function genererHTMLBilanTrimestrePDF(e, trim, opts) {
+            const dateExport = new Date().toLocaleDateString('fr-FR');
+            const res = (e.resultats && e.resultats[trim]) ? e.resultats[trim] : { abs: 0, retards: 0, notes: {} };
+
+            // Format âge & naissance
+            let ageText = "";
+            let dobFormatted = "Non renseignée";
+            if (e.infos && e.infos.dob) {
+                const birthDate = new Date(e.infos.dob);
+                const ageDifMs = Date.now() - birthDate.getTime();
+                const ageDate = new Date(ageDifMs);
+                const years = Math.abs(ageDate.getUTCFullYear() - 1970);
+                if (!isNaN(years)) ageText = `${years} ans`;
+
+                const parts = e.infos.dob.split('-');
+                if (parts.length === 3) {
+                    dobFormatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                } else {
+                    dobFormatted = e.infos.dob;
+                }
+            }
+
+            // Format binômes
+            let binomeTxt = "Aucun";
+            if (e.infos && e.infos.binome) {
+                binomeTxt = escapeHTML(e.infos.binome);
+                if (e.infos.binome2) binomeTxt += ` & ${escapeHTML(e.infos.binome2)}`;
+            }
+
+            // Color helper
+            const getNoteHexColor = (valStr) => {
+                if (valStr === undefined || valStr === null || valStr === "") return "#64748b";
+                const val = parseFloat(String(valStr).replace(',', '.'));
+                if (isNaN(val)) return "#64748b";
+                if (val < 8) return "#e74c3c";
+                if (val < 12) return "#e67e22";
+                if (val < 15) return "#27ae60";
+                return "#2980b9";
+            };
+
+            const getIconMat = (mat) => {
+                const m = mat.toUpperCase();
+                if (m.includes("FRAN") || m.includes("LETTRE")) return "📚";
+                if (m.includes("MATH")) return "📐";
+                if (m.includes("HIST") || m.includes("GEO") || m.includes("HI-GE")) return "🏰";
+                if (m.includes("ANGL") || m.includes("AGL")) return "🇬🇧";
+                if (m.includes("ESP")) return "🇪🇸";
+                if (m.includes("ALL")) return "🇩🇪";
+                if (m.includes("SVT") || m.includes("BIO")) return "🧬";
+                if (m.includes("PHY") || m.includes("CHIM")) return "🧪";
+                if (m.includes("TECH")) return "💻";
+                if (m.includes("MUS") || m.includes("EDMUS")) return "🎵";
+                if (m.includes("ART") || m.includes("PLAST") || m.includes("A-PLA")) return "🎨";
+                if (m.includes("EPS") || m.includes("SPORT")) return "🏃";
+                return "📝";
+            };
+
+            // 1. Assiduité & Classement
+            let assiduiteRangHTML = "";
+            if ((opts.assiduite || opts.rang) && res) {
+                let items = [];
+                if (opts.assiduite) {
+                    items.push(`
+                        <div style="flex:1; background:#fff5f5; border:1px solid #feb2b2; padding:10px 14px; border-radius:10px; text-align:center;">
+                            <div style="font-size:11px; color:#c53030; font-weight:700; text-transform:uppercase;">🚫 Absences Globale</div>
+                            <div style="font-size:18px; font-weight:800; color:#9b2c2c; margin-top:2px;">${escapeHTML(String(res.abs || 0))} h</div>
+                        </div>
+                    `);
+                    items.push(`
+                        <div style="flex:1; background:#fffaf0; border:1px solid #fbd38d; padding:10px 14px; border-radius:10px; text-align:center;">
+                            <div style="font-size:11px; color:#c05621; font-weight:700; text-transform:uppercase;">⏰ Retards</div>
+                            <div style="font-size:18px; font-weight:800; color:#9c4221; margin-top:2px;">${escapeHTML(String(res.retards || 0))}</div>
+                        </div>
+                    `);
+                }
+                if (opts.rang && res.rang !== undefined && res.rang !== "") {
+                    items.push(`
+                        <div style="flex:1; background:#faf5ff; border:1px solid #e9d8fd; padding:10px 14px; border-radius:10px; text-align:center;">
+                            <div style="font-size:11px; color:#6b46c1; font-weight:700; text-transform:uppercase;">🏆 Classement / Rang</div>
+                            <div style="font-size:18px; font-weight:800; color:#553c9a; margin-top:2px;">${escapeHTML(String(res.rang))}</div>
+                        </div>
+                    `);
+                }
+                if (items.length > 0) {
+                    assiduiteRangHTML = `
+                        <div style="margin-bottom: 22px; page-break-inside: avoid;">
+                            <h3 style="font-size: 12.5px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+                                📋 ASSIDUITÉ & REPERES TRIMESTRIELS
+                            </h3>
+                            <div style="display:flex; gap:12px;">${items.join('')}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            // 2. Moyenne générale & Matières
+            let moyennesHTML = "";
+            if (opts.moyenne && res) {
+                const moyG = (res.moyenneG !== undefined && res.moyenneG !== "") ? escapeHTML(String(res.moyenneG)) : "N/A";
+                const moyGColor = getNoteHexColor(res.moyenneG);
+
+                let subjectsCards = "";
+                const subjects = res.notes ? Object.keys(res.notes) : [];
+                if (subjects.length > 0) {
+                    subjectsCards = subjects.map(m => {
+                        const val = res.notes[m];
+                        const icon = getIconMat(m);
+                        const c = getNoteHexColor(val);
+                        return `
+                            <div style="background:#f8fafc; border:1px solid #cbd5e1; padding:8px 12px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; min-width:140px;">
+                                <div style="display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; color:#1e293b;">
+                                    <span>${icon}</span>
+                                    <span>${escapeHTML(m)}</span>
+                                </div>
+                                <span style="background:${c}; color:white; padding:3px 8px; border-radius:6px; font-weight:800; font-size:11.5px;">${escapeHTML(String(val))}</span>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    subjectsCards = `<div style="color:#94a3b8; font-style:italic; font-size:11px; padding:10px;">Aucune note enregistrée pour ce trimestre</div>`;
+                }
+
+                moyennesHTML = `
+                    <div style="margin-bottom: 22px; page-break-inside: avoid;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <h3 style="font-size: 12.5px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin: 0; display: flex; align-items: center; gap: 6px;">
+                                📊 RÉSULTATS PAR MATIÈRE (${trim})
+                            </h3>
+                            <div style="background:${moyGColor}; color:white; padding:6px 14px; border-radius:20px; font-weight:800; font-size:13px; display:flex; align-items:center; gap:6px;">
+                                <span>Moyenne Générale :</span>
+                                <span style="font-size:15px;">${moyG} / 20</span>
+                            </div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:10px;">
+                            ${subjectsCards}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 3. Visualisation / Graphique des résultats
+            let graphiqueHTML = "";
+            if (opts.graphique && res && res.notes && Object.keys(res.notes).length > 0) {
+                const bars = Object.keys(res.notes).map(m => {
+                    const noteStr = res.notes[m];
+                    const num = parseFloat(String(noteStr).replace(',', '.'));
+                    const pct = isNaN(num) ? 0 : Math.min(100, Math.max(0, (num / 20) * 100));
+                    const c = getNoteHexColor(noteStr);
+                    const icon = getIconMat(m);
+
+                    return `
+                        <div style="margin-bottom:8px;">
+                            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700; color:#334155; margin-bottom:2px;">
+                                <span>${icon} ${escapeHTML(m)}</span>
+                                <span style="color:${c};">${escapeHTML(String(noteStr))} / 20</span>
+                            </div>
+                            <div style="width:100%; height:10px; background:#e2e8f0; border-radius:5px; overflow:hidden;">
+                                <div style="width:${pct}%; height:100%; background:${c}; border-radius:5px;"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                graphiqueHTML = `
+                    <div style="margin-bottom: 22px; page-break-inside: avoid;">
+                        <h3 style="font-size: 12.5px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+                            📈 HISTOGRAMME DES RÉSULTATS
+                        </h3>
+                        <div style="background:#f8fafc; border:1px solid #cbd5e1; padding:14px; border-radius:10px;">
+                            ${bars}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 4. Journal Disciplinaire
+            let journalHTML = "";
+            if (opts.journal && res) {
+                const history = (res.historique || []).filter(h => h.details || h.obs || (h.remarks && h.remarks.length > 0));
+
+                if (history.length > 0) {
+                    const rows = history.map(evt => {
+                        const dateFr = new Date(evt.date).toLocaleDateString('fr-FR');
+                        let summary = [];
+                        if (evt.details) {
+                            if (evt.details.travail) summary.push(`📚 ${evt.details.travail} Travail`);
+                            if (evt.details.materiel) summary.push(`🎒 ${evt.details.materiel} Matériel`);
+                            if (evt.details.comportment) summary.push(`🗣️ ${evt.details.comportment} Comportement`);
+                            if (evt.details.oubliCarnet) summary.push(`❌ ${evt.details.oubliCarnet} Oubli carnet`);
+                            if (evt.details.absent) summary.push(`🚫 ${evt.details.absent} Absent`);
+                            if (evt.details.pasDeCroix) summary.push(`👍 Pas de croix`);
+                        }
+
+                        let rems = "";
+                        if (evt.remarks && Array.isArray(evt.remarks) && evt.remarks.length > 0) {
+                            rems = evt.remarks.map(r => `<strong>[${escapeHTML(r.subject || "Général")}]</strong> ${escapeHTML(r.text)}`).join('<br>');
+                        } else if (evt.obs) {
+                            rems = `<strong>[${escapeHTML(evt.subject || "Général")}]</strong> ${escapeHTML(evt.obs)}`;
+                        }
+
+                        const signStatus = evt.signed ? '<span style="color:#16a34a; font-weight:bold;">Signé ✅</span>' : '<span style="color:#dc2626; font-weight:bold;">Non signé ❌</span>';
+
+                        return `
+                            <tr style="border-bottom:1px solid #e2e8f0; font-size:11px;">
+                                <td style="padding:6px 10px; border:1px solid #cbd5e1; width:80px; font-weight:600; color:#475569;">${escapeHTML(dateFr)}</td>
+                                <td style="padding:6px 10px; border:1px solid #cbd5e1; font-weight:600; color:#0f172a;">${summary.join(', ') || 'Suivi'}</td>
+                                <td style="padding:6px 10px; border:1px solid #cbd5e1; color:#334155;">${rems || '-'}</td>
+                                <td style="padding:6px 10px; border:1px solid #cbd5e1; width:80px; text-align:center;">${signStatus}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    journalHTML = `
+                        <div style="margin-bottom: 22px; page-break-inside: avoid;">
+                            <h3 style="font-size: 12.5px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+                                🚨 JOURNAL DE BORD DISCIPLINAIRE
+                            </h3>
+                            <table style="width:100%; border-collapse:collapse; font-size:11px; background:#fff; border-radius:8px; overflow:hidden; border:1px solid #cbd5e1;">
+                                <thead>
+                                    <tr style="background:#e2e8f0; color:#0f172a; font-weight:800; text-align:left;">
+                                        <th style="padding:6px 10px; border:1px solid #cbd5e1;">Date</th>
+                                        <th style="padding:6px 10px; border:1px solid #cbd5e1;">Événement / Motifs</th>
+                                        <th style="padding:6px 10px; border:1px solid #cbd5e1;">Observations</th>
+                                        <th style="padding:6px 10px; border:1px solid #cbd5e1; text-align:center;">Parents</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${rows}</tbody>
+                            </table>
+                        </div>
+                    `;
+                } else {
+                    journalHTML = `
+                        <div style="margin-bottom: 22px; page-break-inside: avoid;">
+                            <h3 style="font-size: 12.5px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+                                🚨 JOURNAL DE BORD DISCIPLINAIRE
+                            </h3>
+                            <div style="background:#f8fafc; border:1px solid #cbd5e1; padding:12px; border-radius:8px; font-style:italic; color:#94a3b8; text-align:center; font-size:11px;">
+                                Aucun événement disciplinaire enregistré pour ce trimestre
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            // 5. Appréciation du Bulletin
+            let bulletinHTML = "";
+            if (opts.bulletin) {
+                let textBilan = "";
+                if (Array.isArray(e.bilansTrimestriels)) {
+                    const item = e.bilansTrimestriels.find(b => b.trimestre === trim);
+                    if (item) textBilan = item.texte || item.text || "";
+                } else if (e.bilansTrimestriels && typeof e.bilansTrimestriels === 'object') {
+                    textBilan = e.bilansTrimestriels[trim] || "";
+                }
+
+                if (textBilan) {
+                    bulletinHTML = `
+                        <div style="margin-bottom: 22px; page-break-inside: avoid;">
+                            <h3 style="font-size: 12.5px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+                                📝 APPRÉCIATION GÉNÉRALE DU BULLETIN
+                            </h3>
+                            <div style="background:#fffde7; border-left:4px solid #f59e0b; border:1px solid #fef08a; padding:14px; border-radius:8px; font-style:italic; color:#334155; font-size:12px; line-height:1.6;">
+                                "${escapeHTML(textBilan)}"
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    bulletinHTML = `
+                        <div style="margin-bottom: 22px; page-break-inside: avoid;">
+                            <h3 style="font-size: 12.5px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+                                📝 APPRÉCIATION GÉNÉRALE DU BULLETIN
+                            </h3>
+                            <div style="background:#f8fafc; border:1px solid #cbd5e1; padding:12px; border-radius:8px; font-style:italic; color:#94a3b8; text-align:center; font-size:11px;">
+                                Aucune appréciation enregistrée pour ce trimestre
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            return `
+                <div style="font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; padding: 30px; background: #ffffff; box-sizing: border-box; font-size: 12px; line-height: 1.5; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 4px 20px rgba(0,0,0,0.06); max-width: 800px; margin: 0 auto;">
+                    
+                    <!-- En-tête officiel -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #334155; padding-bottom: 12px; margin-bottom: 20px;">
+                        <div>
+                            <h1 style="margin: 0; font-size: 20px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">BILAN TRIMESTRIEL (${trim})</h1>
+                            <div style="font-size: 11.5px; color: #64748b; font-weight: 600; margin-top: 3px;">Carnet de Bord numérique - Professeur Principal</div>
+                        </div>
+                        <div style="text-align: right; font-size: 11.5px; color: #64748b; font-weight: 500;">
+                            Édité le ${dateExport}
+                        </div>
+                    </div>
+
+                    <!-- Carte Identité Élève -->
+                    ${opts.identity ? `
+                    <div style="background: #cbd5e1; padding: 18px 22px; border-radius: 14px; margin-bottom: 22px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #94a3b8; page-break-inside: avoid;">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            ${e.photo ? `
+                                <img src="${e.photo}" style="width: 54px; height: 54px; border-radius: 50%; object-fit: contain; background: #fff; border: 2px solid #0f172a;" />
+                            ` : `
+                                <div style="width: 54px; height: 54px; border-radius: 50%; background: #0f172a; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; flex-shrink: 0;">
+                                    ${escapeHTML((e.prenom ? e.prenom.charAt(0) : "") + (e.nom ? e.nom.charAt(0) : ""))}
+                                </div>
+                            `}
+                            <div style="font-size: 12px; color: #0f172a; line-height: 1.6;">
+                                <div><strong>Nom & Prénom :</strong> ${escapeHTML((e.nom || "").toUpperCase())} ${escapeHTML(e.prenom || "")}</div>
+                                <div><strong>Sexe :</strong> ${escapeHTML(e.infos?.sexe || "N/A")}</div>
+                                <div><strong>Binôme(s) d'absence :</strong> ${binomeTxt}</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: #0f172a; line-height: 1.6; text-align: left;">
+                            <div><strong>Né(e) le :</strong> ${dobFormatted} ${ageText ? `(${ageText})` : ""}</div>
+                            <div><strong>Langues :</strong> LV1 : ${escapeHTML(e.infos?.lv1 || "N/A")} | LV2 : ${escapeHTML(e.infos?.lv2 || "N/A")}</div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    ${assiduiteRangHTML}
+                    ${moyennesHTML}
+                    ${graphiqueHTML}
+                    ${journalHTML}
+                    ${bulletinHTML}
+
+                </div>
+            `;
+        }
+
+        function telechargerBilanTrimestrePDF() {
+            if (pdfExportCurrentIndex === null || !eleves[pdfExportCurrentIndex]) return;
+            const e = eleves[pdfExportCurrentIndex];
+            const trim = pdfExportCurrentTrim || 'T1';
+            const element = document.getElementById('pdf-trim-export-preview-content');
+
+            if (!element || !window.html2pdf) {
+                return showModal("Erreur", "Le module de génération PDF n'est pas disponible.");
+            }
+
+            const nomClean = (e.nom || "ELEVE").toUpperCase().replace(/[^A-Z0-9]/gi, '_');
+            const prenomClean = (e.prenom || "").replace(/[^A-Z0-9]/gi, '_');
+            const fileName = `Bilan_${trim}_${nomClean}_${prenomClean}.pdf`;
+
+            const opt = {
+                margin: [8, 8, 8, 8],
+                filename: fileName,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function imprimerBilanTrimestrePDF() {
+            const content = document.getElementById('pdf-trim-export-preview-content')?.innerHTML;
+            if (!content) return;
+
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                return showModal("Information", "Veuillez autoriser les fenêtres surgissantes pour l'impression.");
+            }
+
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Impression Bilan Trimestriel</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+                    <style>
+                        @page { size: A4; margin: 10mm; }
+                        body { font-family: 'Outfit', sans-serif; margin: 0; padding: 0; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    </style>
+                </head>
+                <body>
+                    ${content}
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            setTimeout(function() { window.close(); }, 500);
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
         // --- GESTION JOURNAL DISCIPLINAIRE ---
 
         let tempJournalRemarks = [];
@@ -5112,125 +5662,342 @@
                 const lines = content.split(/\r?\n/).filter(line => line.trim() !== ''); // Handle Windows newlines and empty lines
                 if (lines.length < 2) return showModal("Erreur", "Fichier vide ou invalide.");
 
-                // Detection automatique du délimiteur
+                // Détection automatique du délimiteur (; ou ,)
                 const delimiter = (lines[0].match(/;/g) || []).length > (lines[0].match(/,/g) || []).length ? ';' : ',';
 
                 // Fonction pour normaliser les chaines (enlever les accents, espaces surnuméraires, majuscules)
                 const normalizeString = (str) => {
                     if (!str) return "";
-                    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toUpperCase();
+                    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9 ]/gi, " ").trim().toUpperCase();
                 };
 
-                /* 1. DETECTION DE L'ENTETE (Ligne Moyenne Générale) */
-                let headerIndex = -1;
-                let stdHeaders = [];
+                // Fonction pour rendre une chaîne très épurée (sans espaces ni ponctuation)
+                const cleanKey = (str) => {
+                    if (!str) return "";
+                    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+                };
 
-                // On cherche la ligne qui contient "Moyenne Générale" ou "Moy Gen"
+                /* 1. DETECTION DE L'ENTETE ET SOUS-ENTETES (POLES ET MATIERES) */
+                let bestHeaderIndex = 0;
+                let maxScore = -1;
+
+                const keywordMatches = [
+                    "nom", "prenom", "eleve", "etudiant", "identite",
+                    "abs", "absence", "retard", "moyenne", "rang", "classement",
+                    "franc", "francais", "hg", "histoire", "geo", "math", "maths", "lva", "lvb",
+                    "svt", "phys", "physique", "eps", "art", "arts", "musique", "techno", "emc",
+                    "esp", "espagnol", "ang", "anglais", "humanite", "humanites", "sciences"
+                ];
+
                 for (let i = 0; i < Math.min(20, lines.length); i++) {
                     const row = lines[i].split(delimiter);
-                    if (row.some(c => c.toLowerCase().includes("moy") && (c.toLowerCase().includes("gen") || c.toLowerCase().includes("gén")))) {
-                        headerIndex = i;
-                        stdHeaders = row.map(h => h.trim());
-                        break;
+                    let score = 0;
+                    row.forEach(cell => {
+                        const ck = cleanKey(cell);
+                        if (ck) {
+                            keywordMatches.forEach(kw => {
+                                if (ck.includes(kw)) score++;
+                            });
+                        }
+                    });
+                    if (score > maxScore) {
+                        maxScore = score;
+                        bestHeaderIndex = i;
                     }
                 }
 
-                if (headerIndex === -1) return showModal("Erreur", "Impossible de trouver la ligne d'entête (Moy Gen...).");
+                let headerIndex = bestHeaderIndex;
+                let stdHeaders = lines[headerIndex].split(delimiter).map(h => h.trim());
 
-                /* 1b. DETECTION DES MATIERES (Ligne du dessus) */
-                // Dans le format Pronote avec en-tête double, les matières sont sur la ligne PRECEDENTE
-                let subjectHeaders = [];
-                let subjectRowIndex = headerIndex - 1;
-                if (subjectRowIndex >= 0) {
-                    subjectHeaders = lines[subjectRowIndex].split(delimiter).map(h => h.trim());
-                } else {
-                    subjectHeaders = stdHeaders; // Fallback
+                // Détecter si la ligne N + 1 est une ligne de sous-en-têtes (contenant les matières sous les pôles)
+                let subjectRowIndex = headerIndex;
+                let dataStartIndex = headerIndex + 1;
+
+                if (headerIndex + 1 < lines.length) {
+                    const nextRow = lines[headerIndex + 1].split(delimiter).map(h => h.trim());
+                    const firstCellNorm = normalizeString(nextRow[0] || "");
+                    const isStudentOnNextRow = eleves.some(e => {
+                        const normNom = normalizeString(e.nom);
+                        const normPrenom = normalizeString(e.prenom);
+                        return firstCellNorm && (firstCellNorm === normNom || firstCellNorm === normPrenom || (normNom.length > 2 && firstCellNorm.includes(normNom)));
+                    });
+
+                    // Si la 1ère cellule de la ligne N + 1 n'est pas un élève et que la ligne contient du texte
+                    if (!isStudentOnNextRow && nextRow.some(c => c.length > 1 && !c.toUpperCase().includes("MOYENNE DE LA CLASSE"))) {
+                        subjectRowIndex = headerIndex + 1;
+                        dataStartIndex = headerIndex + 2;
+                    }
                 }
 
-                /* 2. IDENTIFICATION DES COLONNES */
-                const colNom = stdHeaders.findIndex(h => h.toLowerCase().includes("élève") || h.toLowerCase().includes("nom"));
-                const colMoyG = stdHeaders.findIndex(h => h.toLowerCase().includes("moy") && (h.toLowerCase().includes("gen") || h.toLowerCase().includes("gén")));
-                // Update: look for "abs" strictly or "absence"
-                const colAbs = stdHeaders.findIndex(h => h.toLowerCase().includes("absenc") || h.trim() === "Abs");
-                const colRet = stdHeaders.findIndex(h => h.toLowerCase().includes("retar"));
-                const colClass = stdHeaders.findIndex(h => h.toLowerCase().includes("classement") || h.toLowerCase().includes("rang"));
+                let upperSubjectHeaders = [];
+                if (headerIndex - 1 >= 0) {
+                    upperSubjectHeaders = lines[headerIndex - 1].split(delimiter).map(h => h.trim());
+                }
 
-                // Identification des matières depuis la ligne subjectRowIndex
+                let lowerSubjectHeaders = [];
+                if (subjectRowIndex !== headerIndex && subjectRowIndex < lines.length) {
+                    lowerSubjectHeaders = lines[subjectRowIndex].split(delimiter).map(h => h.trim());
+                }
+
+                /* 2. RECUPERATION ET FILTRAGE PAR LES MATIERES DE L'EQUIPE PEDAGOGIQUE */
+
+                const isStudentMoyenneGeneraleHeader = (headerStr) => {
+                    if (!headerStr) return false;
+                    const ck = cleanKey(headerStr);
+                    if (!ck) return false;
+
+                    if (ck === "moy" || ck.startsWith("moy1") || ck.startsWith("moy2") || ck.startsWith("moy3")) return false;
+                    if (ck.includes("classe") || ck.includes("promo") || ck.includes("groupe") || ck.includes("ecarttype") || ck.includes("min") || ck.includes("max")) {
+                        return false;
+                    }
+
+                    if (ck.includes("moyenne") || ck.includes("moygen") || ck.includes("moyennegenerale") || ck.includes("moyennegeneral")) {
+                        return true;
+                    }
+
+                    return false;
+                };
+
+                // Récupération dynamique UNIQUEMENT des matières configurées dans l'Équipe Pédagogique
+                const currentPoles = typeof getPolesEquipe === 'function' ? getPolesEquipe() : [];
+                const equipeMatieres = [];
+                if (Array.isArray(currentPoles)) {
+                    currentPoles.forEach(p => {
+                        if (p.matieres && Array.isArray(p.matieres)) {
+                            p.matieres.forEach(m => {
+                                if (m.label && m.label.trim()) {
+                                    equipeMatieres.push({
+                                        id: m.id,
+                                        label: m.label.trim(),
+                                        cleanLabel: cleanKey(m.label)
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+
+                const isBlacklisted = (headerStr) => {
+                    const ck = cleanKey(headerStr);
+                    if (!ck) return true;
+
+                    if (isStudentMoyenneGeneraleHeader(headerStr)) {
+                        return false;
+                    }
+
+                    if (ck === "moy" || ck.startsWith("moy1") || ck.startsWith("moy2") || ck.startsWith("moy3") || ck.includes("classe") || ck.includes("promo") || ck.includes("groupe") || ck.includes("ecarttype")) {
+                        return true;
+                    }
+
+                    const blacklistedTerms = [
+                        "datedenaissance", "ddn", "naissance",
+                        "sexe", "genre",
+                        "etablissement", "etab",
+                        "ine", "matricule", "commune", "redoublant", "option", "regime",
+                        "humanite", "humanites", "humanitees",
+                        "languesvivantes", "languevivante", "sciences", "artsetsports", "artetsport", "pole", "poles",
+                        "min", "max", "rang", "classement", "section"
+                    ];
+
+                    return blacklistedTerms.some(term => ck === term || ck.includes(term));
+                };
+
+                // Recherche colonne Nom / Prénom
+                let colNom = -1;
+                stdHeaders.forEach((h, idx) => {
+                    const ck = cleanKey(h);
+                    if (colNom === -1 && (ck.includes("nom") || ck.includes("prenom") || ck.includes("eleve") || ck.includes("etudiant") || ck.includes("identite"))) {
+                        colNom = idx;
+                    }
+                });
+                if (colNom === -1) colNom = 0; // Fallback colonne A (Index 0)
+
+                // Absences (colonne G / Index 6 par défaut)
+                let colAbs = -1;
+                stdHeaders.forEach((h, idx) => {
+                    const ck = cleanKey(h);
+                    if (colAbs === -1 && !isBlacklisted(h) && idx !== colNom) {
+                        if (ck.includes("12abs") || ck.includes("abs") || ck.includes("absence") || ck.includes("demijournee")) {
+                            colAbs = idx;
+                        }
+                    }
+                });
+                if (colAbs === -1 && stdHeaders.length > 6) colAbs = 6;
+
+                // Retards (colonne H / Index 7 par défaut)
+                let colRet = -1;
+                stdHeaders.forEach((h, idx) => {
+                    const ck = cleanKey(h);
+                    if (colRet === -1 && !isBlacklisted(h) && idx !== colNom) {
+                        if (ck.includes("retard") || ck.includes("nbretard")) {
+                            colRet = idx;
+                        }
+                    }
+                });
+                if (colRet === -1 && stdHeaders.length > 7) colRet = 7;
+
+                // Rang / Classement (colonne I / Index 8 par défaut)
+                let colRang = -1;
+                stdHeaders.forEach((h, idx) => {
+                    const ck = cleanKey(h);
+                    if (colRang === -1 && !isBlacklisted(h) && idx !== colNom && idx !== colAbs && idx !== colRet) {
+                        if (ck.includes("rang") || ck.includes("classement") || ck.includes("pos")) {
+                            colRang = idx;
+                        }
+                    }
+                });
+                if (colRang === -1 && stdHeaders.length > 8) colRang = 8;
+
+                // Moyenne Générale (colonne J / Index 9 par défaut)
+                let colMoyG = -1;
+                stdHeaders.forEach((h, idx) => {
+                    if (colMoyG === -1 && idx !== colNom && idx !== colAbs && idx !== colRet && idx !== colRang) {
+                        if (isStudentMoyenneGeneraleHeader(h)) {
+                            colMoyG = idx;
+                        }
+                    }
+                });
+                if (colMoyG === -1 && stdHeaders.length > 9) colMoyG = 9;
+
+                const matchEquipeSubject = (headerStr) => {
+                    const ck = cleanKey(headerStr);
+                    if (!ck || ck.length < 2) return null;
+
+                    const aliasMap = [
+                        { aliases: ["esp", "espagnol"], targetKeywords: ["espagnol", "esp", "lvb"] },
+                        { aliases: ["ang", "anglais", "lva", "eng"], targetKeywords: ["anglais", "ang", "lva"] },
+                        { aliases: ["hige", "hi-ge", "h-g", "hg", "hist", "histoire", "geo", "emc", "histoiregeographie"], targetKeywords: ["hist", "geo", "emc", "histoire"] },
+                        { aliases: ["apla", "a-pla", "art", "arts", "artsplastiques"], targetKeywords: ["arts", "art"] },
+                        { aliases: ["edmus", "mus", "musique", "educationmusicale"], targetKeywords: ["musique", "mus"] },
+                        { aliases: ["eps", "sport", "educationphysique"], targetKeywords: ["eps", "sport"] },
+                        { aliases: ["techn", "techno", "technologie"], targetKeywords: ["techno", "technologie", "techn"] },
+                        { aliases: ["phch", "ph-ch", "pc", "phys", "physique", "physiquechimie"], targetKeywords: ["physique", "phys", "chimie"] },
+                        { aliases: ["franc", "fran", "francais"], targetKeywords: ["francais", "fran"] },
+                        { aliases: ["math", "maths", "mathematiques"], targetKeywords: ["math", "maths"] },
+                        { aliases: ["svt", "bio", "sciencesvie"], targetKeywords: ["svt", "bio"] },
+                        { aliases: ["all", "allemand"], targetKeywords: ["allemand", "all"] }
+                    ];
+
+                    for (const entry of aliasMap) {
+                        if (entry.aliases.some(alias => ck === alias || ck.startsWith(alias))) {
+                            const matched = equipeMatieres.find(sub =>
+                                entry.targetKeywords.some(kw => sub.cleanLabel.includes(kw))
+                            );
+                            if (matched) return matched.label;
+                        }
+                    }
+
+                    for (const sub of equipeMatieres) {
+                        const cl = sub.cleanLabel;
+                        if (ck === cl) return sub.label;
+                        if (ck.length >= 3 && cl.startsWith(ck)) return sub.label;
+                        if (cl.length >= 3 && ck.startsWith(cl)) return sub.label;
+                        if (ck.length >= 4 && cl.includes(ck)) return sub.label;
+                        if (cl.length >= 4 && ck.includes(cl)) return sub.label;
+                    }
+
+                    return null;
+                };
+
                 let subjectCols = [];
-                subjectHeaders.forEach((h, idx) => {
-                    // Exclusion des colonnes techniques
-                    const isTech = (idx === colNom || idx === colMoyG || idx === colAbs || idx === colRet || idx === colClass);
+                let ignoredCols = [];
 
-                    // Normalisation pour verification
-                    const normH = h.trim().toLowerCase();
-                    // Liste noire des colonnes standards
-                    const blacklist = ["nom", "prénom", "classe", "moy gen", "moyenne", "absence", "abs", "retard", "rang", "classement"];
-                    const isStandardName = blacklist.some(s => normH.includes(s) || normH === "abs");
+                stdHeaders.forEach((h, idx) => {
+                    // Ignorer colonnes identité / assiduité / moyenne
+                    if (idx === colNom || idx === colAbs || idx === colRet || idx === colRang || idx === colMoyG) return;
+                    // Explicitement ignorer colonnes B, C, D, E, F (Index 1, 2, 3, 4, 5)
+                    if (idx >= 1 && idx <= 5) {
+                        if (h && h.trim().length > 0) ignoredCols.push(h.trim());
+                        return;
+                    }
 
-                    if (!isTech && !isStandardName && h.length > 1) {
-                        // Double vérification: La cellule en dessous (stdHeaders[idx]) est souvent un coeff (ex: "1.00") ou vide ou répète le nom
-                        const headerBelow = stdHeaders[idx] || "";
-                        // Si c'est un nombre (coeff) ou vide, c'est une matière
-                        if (!isNaN(parseFloat(headerBelow.replace(',', '.'))) || headerBelow === "" || headerBelow === h) {
-                            subjectCols.push({ name: h, index: idx });
+                    const lowerCand = lowerSubjectHeaders[idx] ? lowerSubjectHeaders[idx].trim() : "";
+                    const upperCand = upperSubjectHeaders[idx] ? upperSubjectHeaders[idx].trim() : "";
+                    const stdCand = h ? h.trim() : "";
+
+                    let matchedName = null;
+                    let selectedHeaderName = "";
+
+                    if (lowerCand && !isBlacklisted(lowerCand)) {
+                        matchedName = matchEquipeSubject(lowerCand);
+                        if (matchedName) selectedHeaderName = lowerCand;
+                    }
+                    if (!matchedName && upperCand && !isBlacklisted(upperCand)) {
+                        matchedName = matchEquipeSubject(upperCand);
+                        if (matchedName) selectedHeaderName = upperCand;
+                    }
+                    if (!matchedName && stdCand && !isBlacklisted(stdCand)) {
+                        matchedName = matchEquipeSubject(stdCand);
+                        if (matchedName) selectedHeaderName = stdCand;
+                    }
+
+                    if (matchedName) {
+                        subjectCols.push({ name: matchedName, originalHeader: selectedHeaderName || stdCand, index: idx });
+                    } else {
+                        const displayIgnored = lowerCand || stdCand;
+                        if (displayIgnored && displayIgnored.length > 1) {
+                            ignoredCols.push(displayIgnored);
                         }
                     }
                 });
 
-                /* 3. IMPORTATION DES DONNEES */
+                /* 3. IMPORTATION DES DONNEES DANS LES FICHES ELEVES */
                 let count = 0;
-                for (let i = headerIndex + 1; i < lines.length; i++) {
+                for (let i = dataStartIndex; i < lines.length; i++) {
                     const col = lines[i].split(delimiter);
 
-                    // Exclure les lignes qui ne sont manifestement pas des élèves (comme les statistiques de classe)
-                    if (col.length < 2 || col.some(c => c.toUpperCase().includes("MOYENNE DE LA CLASSE") || c.toUpperCase().includes("ÉCART-TYPE"))) continue;
+                    if (col.length < 2) continue;
+                    const cellNomNorm = normalizeString(col[colNom] || col[0] || "");
+                    if (!cellNomNorm || cellNomNorm === "NOM" || cellNomNorm.includes("MOYENNE DE LA CLASSE") || cellNomNorm.includes("MOYENNE DES GROUPES") || cellNomNorm.includes("ECART-TYPE") || cellNomNorm === "POS" || !isNaN(parseFloat(cellNomNorm.replace(',', '.')))) {
+                        continue;
+                    }
 
-                    // Recuperation nom eleve
-                    let nomComplet = "";
-                    if (colNom !== -1 && col[colNom]) nomComplet = normalizeString(col[colNom]);
-                    // Si pas de colonne Nom identifiée (bizarre), on prend la 0 par défaut
-                    else if (col[0]) nomComplet = normalizeString(col[0]);
+                    let nomCompletInput = col[colNom] ? col[colNom].trim() : (col[0] ? col[0].trim() : "");
+                    if (!nomCompletInput) continue;
 
-                    if (!nomComplet) continue;
+                    const normNomComplet = normalizeString(nomCompletInput);
 
-                    // Recherche de l'élève existant (Robuste: nom + prénom)
+                    // Match élève
                     const eIdx = eleves.findIndex(e => {
                         const normNom = normalizeString(e.nom);
                         const normPrenom = normalizeString(e.prenom);
 
-                        return nomComplet === normNom ||
-                            nomComplet === normPrenom ||
-                            (nomComplet.includes(normNom) && nomComplet.includes(normPrenom)) ||
-                            (normNom + " " + normPrenom) === nomComplet ||
-                            (normPrenom + " " + normNom) === nomComplet;
+                        return normNomComplet === normNom ||
+                            normNomComplet === normPrenom ||
+                            (normNomComplet.includes(normNom) && normNomComplet.includes(normPrenom)) ||
+                            (normNom + " " + normPrenom) === normNomComplet ||
+                            (normPrenom + " " + normNom) === normNomComplet;
                     });
 
                     if (eIdx !== -1) {
-                        // Maj des infos générales
-                        // Security: ensure resultats structure exists
                         if (!eleves[eIdx].resultats) eleves[eIdx].resultats = {};
                         if (!eleves[eIdx].resultats[trim]) {
-                            eleves[eIdx].resultats[trim] = { moyenneG: "", abs: 0, retards: 0, notes: {}, punitions: {}, historique: [] };
+                            eleves[eIdx].resultats[trim] = { moyenneG: "", rang: "", abs: 0, retards: 0, notes: {}, punitions: {}, historique: [] };
                         }
 
-                        if (colMoyG !== -1) eleves[eIdx].resultats[trim].moyenneG = col[colMoyG] || "";
-                        if (colAbs !== -1) eleves[eIdx].resultats[trim].abs = col[colAbs] || 0;
-                        if (colRet !== -1) eleves[eIdx].resultats[trim].retards = col[colRet] || 0;
+                        if (colMoyG !== -1 && col[colMoyG] !== undefined) eleves[eIdx].resultats[trim].moyenneG = col[colMoyG].trim() || "";
+                        if (colRang !== -1 && col[colRang] !== undefined) eleves[eIdx].resultats[trim].rang = col[colRang].trim() || "";
+                        if (colAbs !== -1 && col[colAbs] !== undefined) eleves[eIdx].resultats[trim].abs = col[colAbs].trim() || 0;
+                        if (colRet !== -1 && col[colRet] !== undefined) eleves[eIdx].resultats[trim].retards = col[colRet].trim() || 0;
 
-                        // Import des matières
+                        // Import des matières sélectionnées
                         subjectCols.forEach(sub => {
                             const note = col[sub.index];
-                            // On ignore si vide
-                            if (note && note.trim() !== "") {
+                            if (note !== undefined && note.trim() !== "") {
                                 eleves[eIdx].resultats[trim].notes[sub.name] = note.trim();
                             }
                         });
                         count++;
                     }
                 }
+
                 sauvegarder();
-                enregistrerHistorique(trim); // SNAPSHOT
-                showModal("Succès", `Importation réussie pour <b>${count}</b> élèves.<br>Matières détectées : ${subjectCols.length}.`, [{
+                enregistrerHistorique(trim);
+
+                const detectedSubjectsStr = subjectCols.map(s => `• ${s.name}`).join('<br>');
+                const ignoredColsStr = ignoredCols.length > 0 ? `<br><small style="color: #7f8c8d;">Colonnes ignorées : ${Array.from(new Set(ignoredCols)).join(', ')}</small>` : '';
+
+                showModal("Succès", `Importation réussie pour <b>${count}</b> élèves.<br><br><b>Matières importées (${subjectCols.length}) :</b><br>${detectedSubjectsStr || "Aucune matière"}${ignoredColsStr}`, [{
                     text: 'Voir les fiches',
                     cls: 'btn-green',
                     onclick: () => showSection('section-liste')
