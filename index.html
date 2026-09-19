@@ -629,6 +629,13 @@
             font-weight: bold;
         }
 
+        .grade-abs {
+            color: #7f8c8d;
+            font-weight: 700;
+            font-style: italic;
+            font-size: 0.95em;
+        }
+
         .punition-item {
             display: flex;
             justify-content: space-between;
@@ -2760,6 +2767,64 @@
         let eleves = JSON.parse(localStorage.getItem('pp_data')) || [];
         let notesRappels = JSON.parse(localStorage.getItem('pp_notes_rappels')) || [];
 
+        // Helper de normalisation / canonicalisation des matières sans doublons
+        function canonicalSubjectName(rawHeader) {
+            if (!rawHeader) return "";
+            const trimmed = String(rawHeader).replace(/\r?\n/g, ' ').replace(/\s+/g, ' ').trim();
+            const ck = trimmed.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+            if (ck === "maths" || ck === "math" || ck === "mathematiques") return "Maths";
+            if (ck === "francais" || ck === "franc" || ck === "lettres") return "Français";
+            if (ck === "histoiregeographie" || ck === "histgeo" || ck === "hg" || ck === "hige" || ck === "histoiregeo" || ck === "histoire" || ck === "hist") return "Histoire-Géographie";
+            if (ck === "emc" || ck === "enseignementmoraletcivique") return "EMC";
+            if (ck === "physiquechimie" || ck === "physique" || ck === "chimie" || ck === "phch" || ck === "pc") return "Physique-Chimie";
+            if (ck === "svt" || ck === "sciencesvie" || ck === "bio") return "SVT";
+            if (ck === "techno" || ck === "technologie" || ck === "techn") return "Techno";
+            if (ck === "anglais" || ck === "ang" || ck === "lva" || ck === "eng") return "Anglais";
+            if (ck === "espagnol" || ck === "esp" || ck === "lvb") return "Espagnol";
+            if (ck === "artsplastiques" || ck === "artsplastique" || ck === "arts" || ck === "art" || ck === "apla") return "Arts Plastiques";
+            if (ck === "educmusicale" || ck === "educationmusicale" || ck === "musique" || ck === "edmus") return "Éducation Musicale";
+            if (ck === "eps" || ck === "sport" || ck === "educationphysique") return "EPS";
+            if (ck === "basket" || ck === "basketball") return "Basket";
+            if (ck === "lca" || ck === "latin" || ck === "grec") return "LCA";
+            if (ck === "allemand" || ck === "all") return "Allemand";
+            if (ck === "italien" || ck === "ita") return "Italien";
+
+            return trimmed;
+        }
+
+        // Nettoyage / migration automatique des anciennes notes (suppression des doublons MATHS / Maths et séparation Histoire-Géo / EMC)
+        function migrerEtNettoyerNotesEleves() {
+            if (!Array.isArray(eleves)) return;
+            let changed = false;
+            eleves.forEach(e => {
+                if (!e.resultats) return;
+                ['T1', 'T2', 'T3'].forEach(trim => {
+                    if (!e.resultats[trim] || !e.resultats[trim].notes) return;
+                    const oldNotes = e.resultats[trim].notes;
+                    const newNotes = {};
+                    for (const [key, val] of Object.entries(oldNotes)) {
+                        if (val === undefined || val === null || val === "" || val === "-") continue;
+                        let canon = canonicalSubjectName(key);
+                        if (key === "Histoire Géo EMC") {
+                            canon = "Histoire-Géographie";
+                        }
+                        const valStr = String(val).trim();
+                        const finalVal = (valStr.toLowerCase() === 'abs') ? 'Abs' : valStr;
+                        if (!newNotes[canon] || newNotes[canon] === "") {
+                            newNotes[canon] = finalVal;
+                        }
+                        if (key !== canon) changed = true;
+                    }
+                    e.resultats[trim].notes = newNotes;
+                });
+            });
+            if (changed && typeof sauvegarder === "function") {
+                try { sauvegarder(); } catch (err) { }
+            }
+        }
+        migrerEtNettoyerNotesEleves();
+
         // Sécurité : Helper pour échapper le HTML
         function escapeHTML(str) {
             if (str === null || str === undefined) return "";
@@ -3082,6 +3147,74 @@
                 nom: capitalizeName(nom, true),
                 prenom: capitalizeName(prenom, false)
             };
+        }
+
+        // Helper de recherche d'un élève dans la liste à partir d'une cellule ou de deux cellules (Nom, Prénom)
+        function findMatchingStudentIndex(cellNom, cellPrenom, elevesList) {
+            if (!cellNom && !cellPrenom) return -1;
+
+            const normalize = (str) => {
+                if (!str) return "";
+                return str.normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[^a-zA-Z0-9]/g, " ")
+                    .replace(/\s+/g, " ")
+                    .trim()
+                    .toUpperCase();
+            };
+
+            const normInputNom = normalize(cellNom);
+            const normInputPrenom = normalize(cellPrenom);
+            const normInputFull1 = normalize(cellNom + " " + (cellPrenom || ""));
+            const normInputFull2 = normalize((cellPrenom || "") + " " + cellNom);
+
+            // Découpage automatique si Nom et Prénom sont regroupés dans une seule cellule
+            let splitRes = { nom: "", prenom: "" };
+            if (!cellPrenom && typeof splitCombinedFullName === "function") {
+                splitRes = splitCombinedFullName(cellNom);
+            }
+            const normSplitNom = normalize(splitRes.nom);
+            const normSplitPrenom = normalize(splitRes.prenom);
+
+            for (let i = 0; i < elevesList.length; i++) {
+                const e = elevesList[i];
+                const eNom = normalize(e.nom);
+                const ePrenom = normalize(e.prenom);
+                const eFull1 = normalize(e.nom + " " + e.prenom);
+                const eFull2 = normalize(e.prenom + " " + e.nom);
+
+                // 1. Si colonne Nom et colonne Prénom séparées : correspondance directe
+                if (normInputPrenom && normInputNom === eNom && normInputPrenom === ePrenom) {
+                    return i;
+                }
+
+                // 2. Chaine complète "Nom Prénom" ou "Prénom Nom"
+                if (normInputFull1 === eFull1 || normInputFull1 === eFull2 || normInputFull2 === eFull1 || normInputFull2 === eFull2) {
+                    return i;
+                }
+
+                // 3. Correspondance via découpage intelligent (splitCombinedFullName)
+                if (normSplitNom && normSplitPrenom && normSplitNom === eNom && normSplitPrenom === ePrenom) {
+                    return i;
+                }
+
+                // 4. Correspondance par ensemble de mots (tokens)
+                const inputTokens = normInputFull1.split(' ').filter(t => t.length > 0);
+                const eTokens = eFull1.split(' ').filter(t => t.length > 0);
+                if (inputTokens.length === eTokens.length && inputTokens.length > 0) {
+                    const allMatch = eTokens.every(t => inputTokens.includes(t));
+                    if (allMatch) return i;
+                }
+
+                // 5. Contenance réciproque (Nom et Prénom tous deux présents dans la cellule)
+                if (eNom.length >= 2 && ePrenom.length >= 2) {
+                    if (normInputFull1.includes(eNom) && normInputFull1.includes(ePrenom)) {
+                        return i;
+                    }
+                }
+            }
+
+            return -1;
         }
 
         function importerElevesCSV() {
@@ -4199,6 +4332,7 @@
                 }
             });
 
+            migrerEtNettoyerNotesEleves();
             ['T1', 'T2', 'T3'].forEach(t => genererHtmlTrimestre(t));
         }
 
@@ -4206,16 +4340,35 @@
 
         /**
          * Collecte toutes les matières uniques enregistrées pour TOUS les élèves pour un trimestre donné.
-         * Permet de garantir un affichage cohérent même pour les élèves sans notes.
+         * Permet de garantir un affichage ordonné et cohérent.
          */
         function getAllSubjects(trim) {
             const subjects = new Set();
             eleves.forEach(e => {
                 if (e.resultats && e.resultats[trim] && e.resultats[trim].notes) {
-                    Object.keys(e.resultats[trim].notes).forEach(s => subjects.add(s));
+                    Object.keys(e.resultats[trim].notes).forEach(s => {
+                        const val = e.resultats[trim].notes[s];
+                        if (val !== undefined && val !== null && String(val).trim() !== "" && String(val).trim() !== "-") {
+                            subjects.add(s);
+                        }
+                    });
                 }
             });
-            return Array.from(subjects).sort();
+
+            const preferredOrder = [
+                "Français", "Histoire-Géographie", "EMC", "Maths", "Physique-Chimie", "SVT",
+                "Techno", "Anglais", "Espagnol", "Allemand", "Italien",
+                "Arts Plastiques", "Éducation Musicale", "EPS", "Basket", "LCA"
+            ];
+
+            return Array.from(subjects).sort((a, b) => {
+                const idxA = preferredOrder.indexOf(a);
+                const idxB = preferredOrder.indexOf(b);
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                if (idxA !== -1) return -1;
+                if (idxB !== -1) return 1;
+                return a.localeCompare(b);
+            });
         }
 
         function getDropdownSubjectsList(trim) {
@@ -4246,7 +4399,10 @@
                 // Helper couleur note
                 const getNoteColor = (txt) => {
                     if (txt === undefined || txt === null) return "";
-                    const val = parseFloat(String(txt).replace(',', '.'));
+                    const str = String(txt).trim();
+                    if (!str || str === "-") return "";
+                    if (str.toLowerCase() === 'abs') return "grade-abs";
+                    const val = parseFloat(str.replace(',', '.'));
                     if (isNaN(val)) return "";
                     if (val < 8) return "grade-red";
                     if (val < 12) return "grade-yellow";
@@ -4256,9 +4412,10 @@
 
                 // Helper Icone Matière
                 const getIcon = (mat) => {
-                    const m = mat.toUpperCase();
+                    const m = (mat || "").toUpperCase();
                     if (m.includes("FRAN") || m.includes("LETTRE")) return "📚";
                     if (m.includes("MATH")) return "📐";
+                    if (m.includes("EMC")) return "⚖️";
                     if (m.includes("HIST") || m.includes("GEO") || m.includes("HI-GE")) return "🏰";
                     if (m.includes("ANGL") || m.includes("AGL")) return "🇬🇧";
                     if (m.includes("ESP")) return "🇪🇸";
@@ -4268,15 +4425,18 @@
                     if (m.includes("TECH")) return "💻";
                     if (m.includes("MUS") || m.includes("EDMUS")) return "🎵";
                     if (m.includes("ART") || m.includes("PLAST") || m.includes("A-PLA")) return "🎨";
+                    if (m.includes("BASKET")) return "🏀";
                     if (m.includes("EPS") || m.includes("SPORT")) return "🏃";
-                    if (m.includes("LCA") || m.includes("LATIN")) return "🏛️";
+                    if (m.includes("LCA") || m.includes("LATIN") || m.includes("GREC")) return "🏛️";
                     return "📝";
                 };
 
                 // Helper Evolution
                 const getEvolution = (mat, currentVal) => {
-                    if (currentVal === undefined || currentVal === null) return "";
-                    const val = parseFloat(String(currentVal).replace(',', '.'));
+                    if (currentVal === undefined || currentVal === null || currentVal === "" || currentVal === "-") return "";
+                    const str = String(currentVal).trim();
+                    if (str.toLowerCase() === 'abs') return "";
+                    const val = parseFloat(str.replace(',', '.'));
                     if (isNaN(val)) return "";
 
                     // Trouver trimestre précédent
@@ -4315,7 +4475,7 @@
                         <div style="display: flex; gap: 15px; margin-bottom: 20px; background: rgba(231, 76, 60, 0.04); padding: 12px 20px; border-radius: 10px; border: 1px dashed rgba(231, 76, 60, 0.2); justify-content: flex-start; align-items: center; flex-wrap: wrap;">
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <span style="font-weight: bold; font-size: 0.9em; color: var(--text-secondary);">🚫 Absences globales :</span>
-                                <span style="font-weight: bold; font-size: 1.1em; color: var(--danger);">${escapeHTML(String(res.abs))} h</span>
+                                <span style="font-weight: bold; font-size: 1.1em; color: var(--danger);">${escapeHTML(String(res.abs))}</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px; margin-left: 20px;">
                                 <span style="font-weight: bold; font-size: 0.9em; color: var(--text-secondary);">⏰ Retards :</span>
@@ -4350,7 +4510,8 @@
                     subjectsHtml = '<p style="color:#95a5a6; font-style:italic; text-align:center; grid-column: 1 / -1; padding: 20px;">Aucune matière importée pour ce trimestre (Utilisez "Entrer les résultats" pour importer un CSV).</p>';
                 } else {
                     allSubjects.forEach(m => {
-                        const noteVal = res.notes[m] !== undefined ? res.notes[m] : "";
+                        const rawVal = res.notes[m];
+                        const noteVal = (rawVal !== undefined && rawVal !== null && rawVal !== "-") ? String(rawVal).trim() : "";
                         const cls = getNoteColor(noteVal);
                         const icon = getIcon(m);
                         const evo = getEvolution(m, noteVal);
@@ -4362,7 +4523,7 @@
                                  <span class="subject-name">${escapeHTML(m)}</span>
                              </div>
                              <div style="display:flex; align-items:center;">
-                                 <span class="subject-grade ${cls}">${escapeHTML(String(noteVal))}</span>
+                                 <span class="subject-grade ${cls}">${noteVal ? escapeHTML(noteVal) : ''}</span>
                                  ${evo}
                              </div>
                          </div>`;
@@ -4955,7 +5116,9 @@
             // Color helper
             const getNoteHexColor = (valStr) => {
                 if (valStr === undefined || valStr === null || valStr === "") return "#64748b";
-                const val = parseFloat(String(valStr).replace(',', '.'));
+                const str = String(valStr).trim();
+                if (str.toLowerCase() === 'abs') return "#94a3b8";
+                const val = parseFloat(str.replace(',', '.'));
                 if (isNaN(val)) return "#64748b";
                 if (val < 8) return "#e74c3c";
                 if (val < 12) return "#e67e22";
@@ -4964,9 +5127,10 @@
             };
 
             const getIconMat = (mat) => {
-                const m = mat.toUpperCase();
+                const m = (mat || "").toUpperCase();
                 if (m.includes("FRAN") || m.includes("LETTRE")) return "📚";
                 if (m.includes("MATH")) return "📐";
+                if (m.includes("EMC")) return "⚖️";
                 if (m.includes("HIST") || m.includes("GEO") || m.includes("HI-GE")) return "🏰";
                 if (m.includes("ANGL") || m.includes("AGL")) return "🇬🇧";
                 if (m.includes("ESP")) return "🇪🇸";
@@ -4976,7 +5140,9 @@
                 if (m.includes("TECH")) return "💻";
                 if (m.includes("MUS") || m.includes("EDMUS")) return "🎵";
                 if (m.includes("ART") || m.includes("PLAST") || m.includes("A-PLA")) return "🎨";
+                if (m.includes("BASKET")) return "🏀";
                 if (m.includes("EPS") || m.includes("SPORT")) return "🏃";
+                if (m.includes("LCA") || m.includes("LATIN") || m.includes("GREC")) return "🏛️";
                 return "📝";
             };
 
@@ -5659,43 +5825,40 @@
             const reader = new FileReader();
             reader.onload = function (event) {
                 const content = event.target.result;
-                const lines = content.split(/\r?\n/).filter(line => line.trim() !== ''); // Handle Windows newlines and empty lines
-                if (lines.length < 2) return showModal("Erreur", "Fichier vide ou invalide.");
+                const rawLines = content.split(/\r?\n/).filter(line => line.trim() !== '');
+                if (rawLines.length < 2) return showModal("Erreur", "Fichier vide ou invalide.");
 
-                // Détection automatique du délimiteur (; ou ,)
-                const delimiter = (lines[0].match(/;/g) || []).length > (lines[0].match(/,/g) || []).length ? ';' : ',';
+                // Détection intelligente du délimiteur
+                const delimiter = typeof detectCSVDelimiter === 'function' ? detectCSVDelimiter(rawLines) : (rawLines[0].includes(';') ? ';' : ',');
+                const parsedRows = rawLines.map(line => typeof parseCSVLine === 'function' ? parseCSVLine(line, delimiter) : line.split(delimiter).map(c => c.trim()));
 
-                // Fonction pour normaliser les chaines (enlever les accents, espaces surnuméraires, majuscules)
-                const normalizeString = (str) => {
-                    if (!str) return "";
-                    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9 ]/gi, " ").trim().toUpperCase();
-                };
-
-                // Fonction pour rendre une chaîne très épurée (sans espaces ni ponctuation)
                 const cleanKey = (str) => {
                     if (!str) return "";
                     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
                 };
 
-                /* 1. DETECTION DE L'ENTETE ET SOUS-ENTETES (POLES ET MATIERES) */
-                let bestHeaderIndex = 0;
-                let maxScore = -1;
+                const cleanHeader = (str) => {
+                    if (!str) return "";
+                    return str.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ').trim();
+                };
 
-                const keywordMatches = [
+                // 1. Détection de la ligne d'en-tête par scoring
+                const headerKeywords = [
                     "nom", "prenom", "eleve", "etudiant", "identite",
-                    "abs", "absence", "retard", "moyenne", "rang", "classement",
-                    "franc", "francais", "hg", "histoire", "geo", "math", "maths", "lva", "lvb",
-                    "svt", "phys", "physique", "eps", "art", "arts", "musique", "techno", "emc",
-                    "esp", "espagnol", "ang", "anglais", "humanite", "humanites", "sciences"
+                    "abs", "retard", "moyenne", "rang", "classement",
+                    "francais", "histoire", "geo", "maths", "math",
+                    "svt", "physique", "eps", "arts", "musique", "techno", "emc", "espagnol", "anglais"
                 ];
 
-                for (let i = 0; i < Math.min(20, lines.length); i++) {
-                    const row = lines[i].split(delimiter);
+                let bestHeaderIndex = 0;
+                let maxScore = -1;
+                for (let i = 0; i < Math.min(15, parsedRows.length); i++) {
+                    const row = parsedRows[i];
                     let score = 0;
                     row.forEach(cell => {
                         const ck = cleanKey(cell);
                         if (ck) {
-                            keywordMatches.forEach(kw => {
+                            headerKeywords.forEach(kw => {
                                 if (ck.includes(kw)) score++;
                             });
                         }
@@ -5706,299 +5869,184 @@
                     }
                 }
 
-                let headerIndex = bestHeaderIndex;
-                let stdHeaders = lines[headerIndex].split(delimiter).map(h => h.trim());
+                const headerRow = parsedRows[bestHeaderIndex];
+                let colNom = -1;
+                let colPrenom = -1;
+                let colAbs = -1;
+                let colRet = -1;
+                let colRang = -1;
+                let colMoyG = -1;
 
-                // Détecter si la ligne N + 1 est une ligne de sous-en-têtes (contenant les matières sous les pôles)
-                let subjectRowIndex = headerIndex;
-                let dataStartIndex = headerIndex + 1;
-
-                if (headerIndex + 1 < lines.length) {
-                    const nextRow = lines[headerIndex + 1].split(delimiter).map(h => h.trim());
-                    const firstCellNorm = normalizeString(nextRow[0] || "");
-                    const isStudentOnNextRow = eleves.some(e => {
-                        const normNom = normalizeString(e.nom);
-                        const normPrenom = normalizeString(e.prenom);
-                        return firstCellNorm && (firstCellNorm === normNom || firstCellNorm === normPrenom || (normNom.length > 2 && firstCellNorm.includes(normNom)));
-                    });
-
-                    // Si la 1ère cellule de la ligne N + 1 n'est pas un élève et que la ligne contient du texte
-                    if (!isStudentOnNextRow && nextRow.some(c => c.length > 1 && !c.toUpperCase().includes("MOYENNE DE LA CLASSE"))) {
-                        subjectRowIndex = headerIndex + 1;
-                        dataStartIndex = headerIndex + 2;
-                    }
-                }
-
-                let upperSubjectHeaders = [];
-                if (headerIndex - 1 >= 0) {
-                    upperSubjectHeaders = lines[headerIndex - 1].split(delimiter).map(h => h.trim());
-                }
-
-                let lowerSubjectHeaders = [];
-                if (subjectRowIndex !== headerIndex && subjectRowIndex < lines.length) {
-                    lowerSubjectHeaders = lines[subjectRowIndex].split(delimiter).map(h => h.trim());
-                }
-
-                /* 2. RECUPERATION ET FILTRAGE PAR LES MATIERES DE L'EQUIPE PEDAGOGIQUE */
-
-                const isStudentMoyenneGeneraleHeader = (headerStr) => {
-                    if (!headerStr) return false;
-                    const ck = cleanKey(headerStr);
-                    if (!ck) return false;
-
-                    if (ck === "moy" || ck.startsWith("moy1") || ck.startsWith("moy2") || ck.startsWith("moy3")) return false;
+                const isMoyenneGenerale = (ck) => {
                     if (ck.includes("classe") || ck.includes("promo") || ck.includes("groupe") || ck.includes("ecarttype") || ck.includes("min") || ck.includes("max")) {
                         return false;
                     }
-
-                    if (ck.includes("moyenne") || ck.includes("moygen") || ck.includes("moyennegenerale") || ck.includes("moyennegeneral")) {
-                        return true;
-                    }
-
-                    return false;
+                    return ck.includes("moyenne") || ck.includes("moygen") || ck.includes("moyennegenerale") || ck === "moy";
                 };
 
-                // Récupération dynamique UNIQUEMENT des matières configurées dans l'Équipe Pédagogique
-                const currentPoles = typeof getPolesEquipe === 'function' ? getPolesEquipe() : [];
-                const equipeMatieres = [];
-                if (Array.isArray(currentPoles)) {
-                    currentPoles.forEach(p => {
-                        if (p.matieres && Array.isArray(p.matieres)) {
-                            p.matieres.forEach(m => {
-                                if (m.label && m.label.trim()) {
-                                    equipeMatieres.push({
-                                        id: m.id,
-                                        label: m.label.trim(),
-                                        cleanLabel: cleanKey(m.label)
-                                    });
-                                }
-                            });
-                        }
-                    });
-                }
-
-                const isBlacklisted = (headerStr) => {
-                    const ck = cleanKey(headerStr);
+                const isBlacklisted = (ck) => {
                     if (!ck) return true;
-
-                    if (isStudentMoyenneGeneraleHeader(headerStr)) {
-                        return false;
-                    }
-
-                    if (ck === "moy" || ck.startsWith("moy1") || ck.startsWith("moy2") || ck.startsWith("moy3") || ck.includes("classe") || ck.includes("promo") || ck.includes("groupe") || ck.includes("ecarttype")) {
-                        return true;
-                    }
-
-                    const blacklistedTerms = [
-                        "datedenaissance", "ddn", "naissance",
-                        "sexe", "genre",
-                        "etablissement", "etab",
-                        "ine", "matricule", "commune", "redoublant", "option", "regime",
-                        "humanite", "humanites", "humanitees",
-                        "languesvivantes", "languevivante", "sciences", "artsetsports", "artetsport", "pole", "poles",
-                        "min", "max", "rang", "classement", "section"
+                    if (isMoyenneGenerale(ck)) return false;
+                    const blacklist = [
+                        "datedenaissance", "ddn", "naissance", "sexe", "genre",
+                        "etablissement", "etab", "ine", "matricule", "regime", "redoublant",
+                        "moyennedeclasse", "moyenneclasse", "moyennedesgroupes", "ecarttype", "min", "max"
                     ];
-
-                    return blacklistedTerms.some(term => ck === term || ck.includes(term));
+                    return blacklist.some(term => ck === term || ck.includes(term));
                 };
 
-                // Recherche colonne Nom / Prénom
-                let colNom = -1;
-                stdHeaders.forEach((h, idx) => {
+                headerRow.forEach((h, idx) => {
                     const ck = cleanKey(h);
-                    if (colNom === -1 && (ck.includes("nom") || ck.includes("prenom") || ck.includes("eleve") || ck.includes("etudiant") || ck.includes("identite"))) {
+                    if (!ck) return;
+
+                    // Nom / Prénom
+                    if (colNom === -1 && (ck === "nom" || (ck.startsWith("nom") && !ck.includes("prenom")))) {
+                        colNom = idx;
+                    } else if (colPrenom === -1 && (ck === "prenom" || ck.includes("prenom"))) {
+                        colPrenom = idx;
+                    } else if (colNom === -1 && (ck.includes("eleve") || ck.includes("identite") || (ck.includes("nom") && ck.includes("prenom")))) {
                         colNom = idx;
                     }
-                });
-                if (colNom === -1) colNom = 0; // Fallback colonne A (Index 0)
 
-                // Absences (colonne G / Index 6 par défaut)
-                let colAbs = -1;
-                stdHeaders.forEach((h, idx) => {
-                    const ck = cleanKey(h);
-                    if (colAbs === -1 && !isBlacklisted(h) && idx !== colNom) {
-                        if (ck.includes("12abs") || ck.includes("abs") || ck.includes("absence") || ck.includes("demijournee")) {
-                            colAbs = idx;
-                        }
+                    // Absences
+                    if (colAbs === -1 && (ck.includes("12abs") || ck.includes("abs") || ck.includes("absence") || ck.includes("demijournee"))) {
+                        colAbs = idx;
+                    }
+
+                    // Retards
+                    if (colRet === -1 && (ck.includes("retard") || ck.includes("nbretard"))) {
+                        colRet = idx;
+                    }
+
+                    // Rang
+                    if (colRang === -1 && (ck.includes("rang") || ck.includes("classement") || ck === "pos")) {
+                        colRang = idx;
+                    }
+
+                    // Moyenne générale
+                    if (colMoyG === -1 && isMoyenneGenerale(ck)) {
+                        colMoyG = idx;
                     }
                 });
-                if (colAbs === -1 && stdHeaders.length > 6) colAbs = 6;
 
-                // Retards (colonne H / Index 7 par défaut)
-                let colRet = -1;
-                stdHeaders.forEach((h, idx) => {
-                    const ck = cleanKey(h);
-                    if (colRet === -1 && !isBlacklisted(h) && idx !== colNom) {
-                        if (ck.includes("retard") || ck.includes("nbretard")) {
-                            colRet = idx;
-                        }
-                    }
-                });
-                if (colRet === -1 && stdHeaders.length > 7) colRet = 7;
+                if (colNom === -1) colNom = 0;
 
-                // Rang / Classement (colonne I / Index 8 par défaut)
-                let colRang = -1;
-                stdHeaders.forEach((h, idx) => {
-                    const ck = cleanKey(h);
-                    if (colRang === -1 && !isBlacklisted(h) && idx !== colNom && idx !== colAbs && idx !== colRet) {
-                        if (ck.includes("rang") || ck.includes("classement") || ck.includes("pos")) {
-                            colRang = idx;
-                        }
-                    }
-                });
-                if (colRang === -1 && stdHeaders.length > 8) colRang = 8;
-
-                // Moyenne Générale (colonne J / Index 9 par défaut)
-                let colMoyG = -1;
-                stdHeaders.forEach((h, idx) => {
-                    if (colMoyG === -1 && idx !== colNom && idx !== colAbs && idx !== colRet && idx !== colRang) {
-                        if (isStudentMoyenneGeneraleHeader(h)) {
-                            colMoyG = idx;
-                        }
-                    }
-                });
-                if (colMoyG === -1 && stdHeaders.length > 9) colMoyG = 9;
-
-                const matchEquipeSubject = (headerStr) => {
-                    const ck = cleanKey(headerStr);
-                    if (!ck || ck.length < 2) return null;
-
-                    const aliasMap = [
-                        { aliases: ["esp", "espagnol"], targetKeywords: ["espagnol", "esp", "lvb"] },
-                        { aliases: ["ang", "anglais", "lva", "eng"], targetKeywords: ["anglais", "ang", "lva"] },
-                        { aliases: ["hige", "hi-ge", "h-g", "hg", "hist", "histoire", "geo", "emc", "histoiregeographie"], targetKeywords: ["hist", "geo", "emc", "histoire"] },
-                        { aliases: ["apla", "a-pla", "art", "arts", "artsplastiques"], targetKeywords: ["arts", "art"] },
-                        { aliases: ["edmus", "mus", "musique", "educationmusicale"], targetKeywords: ["musique", "mus"] },
-                        { aliases: ["eps", "sport", "educationphysique"], targetKeywords: ["eps", "sport"] },
-                        { aliases: ["techn", "techno", "technologie"], targetKeywords: ["techno", "technologie", "techn"] },
-                        { aliases: ["phch", "ph-ch", "pc", "phys", "physique", "physiquechimie"], targetKeywords: ["physique", "phys", "chimie"] },
-                        { aliases: ["franc", "fran", "francais"], targetKeywords: ["francais", "fran"] },
-                        { aliases: ["math", "maths", "mathematiques"], targetKeywords: ["math", "maths"] },
-                        { aliases: ["svt", "bio", "sciencesvie"], targetKeywords: ["svt", "bio"] },
-                        { aliases: ["all", "allemand"], targetKeywords: ["allemand", "all"] }
-                    ];
-
-                    for (const entry of aliasMap) {
-                        if (entry.aliases.some(alias => ck === alias || ck.startsWith(alias))) {
-                            const matched = equipeMatieres.find(sub =>
-                                entry.targetKeywords.some(kw => sub.cleanLabel.includes(kw))
-                            );
-                            if (matched) return matched.label;
-                        }
-                    }
-
-                    for (const sub of equipeMatieres) {
-                        const cl = sub.cleanLabel;
-                        if (ck === cl) return sub.label;
-                        if (ck.length >= 3 && cl.startsWith(ck)) return sub.label;
-                        if (cl.length >= 3 && ck.startsWith(cl)) return sub.label;
-                        if (ck.length >= 4 && cl.includes(ck)) return sub.label;
-                        if (cl.length >= 4 && ck.includes(cl)) return sub.label;
-                    }
-
-                    return null;
-                };
-
-                let subjectCols = [];
-                let ignoredCols = [];
-
-                stdHeaders.forEach((h, idx) => {
-                    // Ignorer colonnes identité / assiduité / moyenne
-                    if (idx === colNom || idx === colAbs || idx === colRet || idx === colRang || idx === colMoyG) return;
-                    // Explicitement ignorer colonnes B, C, D, E, F (Index 1, 2, 3, 4, 5)
-                    if (idx >= 1 && idx <= 5) {
-                        if (h && h.trim().length > 0) ignoredCols.push(h.trim());
+                // 2. Détection des matières
+                const subjectCols = [];
+                headerRow.forEach((h, idx) => {
+                    if (idx === colNom || idx === colPrenom || idx === colAbs || idx === colRet || idx === colRang || idx === colMoyG) {
                         return;
                     }
+                    const ck = cleanKey(h);
+                    if (!ck || isBlacklisted(ck)) return;
 
-                    const lowerCand = lowerSubjectHeaders[idx] ? lowerSubjectHeaders[idx].trim() : "";
-                    const upperCand = upperSubjectHeaders[idx] ? upperSubjectHeaders[idx].trim() : "";
-                    const stdCand = h ? h.trim() : "";
-
-                    let matchedName = null;
-                    let selectedHeaderName = "";
-
-                    if (lowerCand && !isBlacklisted(lowerCand)) {
-                        matchedName = matchEquipeSubject(lowerCand);
-                        if (matchedName) selectedHeaderName = lowerCand;
-                    }
-                    if (!matchedName && upperCand && !isBlacklisted(upperCand)) {
-                        matchedName = matchEquipeSubject(upperCand);
-                        if (matchedName) selectedHeaderName = upperCand;
-                    }
-                    if (!matchedName && stdCand && !isBlacklisted(stdCand)) {
-                        matchedName = matchEquipeSubject(stdCand);
-                        if (matchedName) selectedHeaderName = stdCand;
-                    }
-
-                    if (matchedName) {
-                        subjectCols.push({ name: matchedName, originalHeader: selectedHeaderName || stdCand, index: idx });
-                    } else {
-                        const displayIgnored = lowerCand || stdCand;
-                        if (displayIgnored && displayIgnored.length > 1) {
-                            ignoredCols.push(displayIgnored);
+                    const canon = canonicalSubjectName(h);
+                    if (canon) {
+                        // Éviter d'ajouter deux fois la même matière
+                        if (!subjectCols.some(s => s.name === canon)) {
+                            subjectCols.push({ name: canon, originalHeader: cleanHeader(h), index: idx });
                         }
                     }
                 });
 
-                /* 3. IMPORTATION DES DONNEES DANS LES FICHES ELEVES */
+                // 3. Traitement des lignes d'élèves
                 let count = 0;
-                for (let i = dataStartIndex; i < lines.length; i++) {
-                    const col = lines[i].split(delimiter);
+                const nonTrouves = [];
 
-                    if (col.length < 2) continue;
-                    const cellNomNorm = normalizeString(col[colNom] || col[0] || "");
-                    if (!cellNomNorm || cellNomNorm === "NOM" || cellNomNorm.includes("MOYENNE DE LA CLASSE") || cellNomNorm.includes("MOYENNE DES GROUPES") || cellNomNorm.includes("ECART-TYPE") || cellNomNorm === "POS" || !isNaN(parseFloat(cellNomNorm.replace(',', '.')))) {
+                for (let i = bestHeaderIndex + 1; i < parsedRows.length; i++) {
+                    const row = parsedRows[i];
+                    if (!row || row.length < 2) continue;
+
+                    const cellNomText = (row[colNom] || "").trim();
+                    const cellPrenomText = colPrenom !== -1 ? (row[colPrenom] || "").trim() : "";
+                    const ckNom = cleanKey(cellNomText);
+
+                    // Ignorer les lignes de moyennes ou statistiques de bas de tableau
+                    if (!ckNom || ckNom === "nom" || ckNom.includes("moyennedeclasse") || ckNom.includes("moyennedesgroupes") || ckNom.includes("moyenne") || ckNom.includes("ecarttype") || !isNaN(parseFloat(cellNomText.replace(',', '.')))) {
                         continue;
                     }
 
-                    let nomCompletInput = col[colNom] ? col[colNom].trim() : (col[0] ? col[0].trim() : "");
-                    if (!nomCompletInput) continue;
+                    const eIdx = findMatchingStudentIndex(cellNomText, cellPrenomText, eleves);
+                    if (eIdx === -1) {
+                        nonTrouves.push(cellNomText + (cellPrenomText ? " " + cellPrenomText : ""));
+                        continue;
+                    }
 
-                    const normNomComplet = normalizeString(nomCompletInput);
+                    const targetStudent = eleves[eIdx];
+                    if (!targetStudent.resultats) targetStudent.resultats = {};
+                    if (!targetStudent.resultats[trim]) {
+                        targetStudent.resultats[trim] = { moyenneG: "", rang: "", abs: 0, retards: 0, notes: {}, punitions: {}, historique: [] };
+                    }
+                    if (!targetStudent.resultats[trim].notes) {
+                        targetStudent.resultats[trim].notes = {};
+                    }
 
-                    // Match élève
-                    const eIdx = eleves.findIndex(e => {
-                        const normNom = normalizeString(e.nom);
-                        const normPrenom = normalizeString(e.prenom);
+                    // Moyenne générale
+                    if (colMoyG !== -1 && row[colMoyG] !== undefined) {
+                        const valMoy = row[colMoyG].trim();
+                        if (valMoy.toLowerCase() === 'abs') {
+                            targetStudent.resultats[trim].moyenneG = "Abs";
+                        } else if (valMoy === '-' || valMoy === '') {
+                            targetStudent.resultats[trim].moyenneG = "";
+                        } else {
+                            targetStudent.resultats[trim].moyenneG = valMoy;
+                        }
+                    }
 
-                        return normNomComplet === normNom ||
-                            normNomComplet === normPrenom ||
-                            (normNomComplet.includes(normNom) && normNomComplet.includes(normPrenom)) ||
-                            (normNom + " " + normPrenom) === normNomComplet ||
-                            (normPrenom + " " + normNom) === normNomComplet;
+                    // Rang
+                    if (colRang !== -1 && row[colRang] !== undefined) {
+                        const valRang = row[colRang].trim();
+                        targetStudent.resultats[trim].rang = (valRang === '-' ? '' : valRang);
+                    }
+
+                    // Absences
+                    if (colAbs !== -1 && row[colAbs] !== undefined) {
+                        const valAbs = row[colAbs].trim();
+                        targetStudent.resultats[trim].abs = (valAbs === '-' || valAbs === '' ? '0' : valAbs);
+                    }
+
+                    // Retards
+                    if (colRet !== -1 && row[colRet] !== undefined) {
+                        const valRet = row[colRet].trim();
+                        targetStudent.resultats[trim].retards = (valRet === '-' || valRet === '' ? '0' : valRet);
+                    }
+
+                    // Nettoyage préalable des anciennes clés obsolètes
+                    delete targetStudent.resultats[trim].notes["MATHS"];
+                    delete targetStudent.resultats[trim].notes["Histoire Géo EMC"];
+
+                    // Enregistrement des notes
+                    subjectCols.forEach(sub => {
+                        const rawNote = row[sub.index] !== undefined ? row[sub.index].trim() : "";
+                        if (!rawNote || rawNote === "-") {
+                            // Pas de note dans le tableau -> n'affiche rien
+                            delete targetStudent.resultats[trim].notes[sub.name];
+                        } else if (rawNote.toLowerCase() === "abs") {
+                            // Si le tableau affiche "abs" -> affiche Abs
+                            targetStudent.resultats[trim].notes[sub.name] = "Abs";
+                        } else {
+                            // Note chiffrée
+                            targetStudent.resultats[trim].notes[sub.name] = rawNote;
+                        }
                     });
 
-                    if (eIdx !== -1) {
-                        if (!eleves[eIdx].resultats) eleves[eIdx].resultats = {};
-                        if (!eleves[eIdx].resultats[trim]) {
-                            eleves[eIdx].resultats[trim] = { moyenneG: "", rang: "", abs: 0, retards: 0, notes: {}, punitions: {}, historique: [] };
-                        }
-
-                        if (colMoyG !== -1 && col[colMoyG] !== undefined) eleves[eIdx].resultats[trim].moyenneG = col[colMoyG].trim() || "";
-                        if (colRang !== -1 && col[colRang] !== undefined) eleves[eIdx].resultats[trim].rang = col[colRang].trim() || "";
-                        if (colAbs !== -1 && col[colAbs] !== undefined) eleves[eIdx].resultats[trim].abs = col[colAbs].trim() || 0;
-                        if (colRet !== -1 && col[colRet] !== undefined) eleves[eIdx].resultats[trim].retards = col[colRet].trim() || 0;
-
-                        // Import des matières sélectionnées
-                        subjectCols.forEach(sub => {
-                            const note = col[sub.index];
-                            if (note !== undefined && note.trim() !== "") {
-                                eleves[eIdx].resultats[trim].notes[sub.name] = note.trim();
-                            }
-                        });
-                        count++;
-                    }
+                    count++;
                 }
 
+                migrerEtNettoyerNotesEleves();
                 sauvegarder();
-                enregistrerHistorique(trim);
+                if (typeof enregistrerHistorique === "function") {
+                    enregistrerHistorique(trim);
+                }
 
-                const detectedSubjectsStr = subjectCols.map(s => `• ${s.name}`).join('<br>');
-                const ignoredColsStr = ignoredCols.length > 0 ? `<br><small style="color: #7f8c8d;">Colonnes ignorées : ${Array.from(new Set(ignoredCols)).join(', ')}</small>` : '';
+                const detectedSubjectsStr = subjectCols.map(s => `• <b>${escapeHTML(s.name)}</b> (colonne : ${escapeHTML(s.originalHeader)})`).join('<br>');
+                let msg = `Importation réussie pour <b>${count}</b> élève(s).<br><br><b>Matières importées (${subjectCols.length}) :</b><br>${detectedSubjectsStr || "Aucune matière"}`;
+                if (nonTrouves.length > 0) {
+                    msg += `<br><br><small style="color:#e67e22;"><b>Élèves du CSV non trouvés dans l'application (${nonTrouves.length}) :</b><br>${nonTrouves.map(n => escapeHTML(n)).join(', ')}</small>`;
+                }
 
-                showModal("Succès", `Importation réussie pour <b>${count}</b> élèves.<br><br><b>Matières importées (${subjectCols.length}) :</b><br>${detectedSubjectsStr || "Aucune matière"}${ignoredColsStr}`, [{
-                    text: 'Voir les fiches',
+                showModal("Succès de l'importation", msg, [{
+                    text: 'Voir les fiches élèves',
                     cls: 'btn-green',
                     onclick: () => showSection('section-liste')
                 }]);
@@ -7006,7 +7054,7 @@
                 "Humanités": ["FRANC", "LETTRE", "HIST", "GEO", "HI-GE", "EMC", "LCA", "LATIN"],
                 "Sciences": ["MATH", "PHY", "CHIM", "SVT", "BIO", "TECH", "SCIEN"],
                 "Langues": ["ANGL", "ESP", "ALL", "AGL", "IT", "LV"],
-                "Arts & Sports": ["ART", "PLA", "MUS", "EDM", "EPS", "SPORT"]
+                "Arts & Sports": ["ART", "PLA", "MUS", "EDM", "EPS", "SPORT", "BASKET"]
             };
             const POLE_COLORS = {
                 "Humanités": "#8e44ad", // Violet
@@ -7536,7 +7584,8 @@
                 matieres: [
                     { id: "maths", label: "Maths", icon: "📐" },
                     { id: "svt", label: "SVT", icon: "🌿" },
-                    { id: "physique", label: "Physique", icon: "🧪" }
+                    { id: "physique", label: "Physique-Chimie", icon: "🧪" },
+                    { id: "techno", label: "Techno", icon: "💻" }
                 ]
             },
             {
@@ -7544,9 +7593,12 @@
                 color: "#3498db",
                 matieres: [
                     { id: "francais", label: "Français", icon: "✍️" },
-                    { id: "hist_geo", label: "Histoire Géo EMC", icon: "🌍" },
+                    { id: "hist_geo", label: "Histoire-Géographie", icon: "🌍" },
+                    { id: "emc", label: "EMC", icon: "⚖️" },
                     { id: "anglais", label: "Anglais", icon: "🇬🇧" },
-                    { id: "allemand", label: "Allemand", icon: "🇩🇪" }
+                    { id: "espagnol", label: "Espagnol", icon: "🇪🇸" },
+                    { id: "allemand", label: "Allemand", icon: "🇩🇪" },
+                    { id: "lca", label: "LCA", icon: "🏛️" }
                 ]
             },
             {
@@ -7554,8 +7606,9 @@
                 color: "#e67e22",
                 matieres: [
                     { id: "eps", label: "EPS", icon: "🏃‍♂️" },
-                    { id: "musique", label: "Éducation musicale", icon: "🎵" },
-                    { id: "arts", label: "Arts plastiques", icon: "🎨" }
+                    { id: "basket", label: "Basket", icon: "🏀" },
+                    { id: "musique", label: "Éducation Musicale", icon: "🎵" },
+                    { id: "arts", label: "Arts Plastiques", icon: "🎨" }
                 ]
             }
         ];
@@ -7565,7 +7618,23 @@
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        let updated = false;
+                        parsed.forEach(p => {
+                            if (p.matieres) {
+                                p.matieres.forEach(m => {
+                                    if (m.label === "Histoire Géo EMC") {
+                                        m.label = "Histoire-Géographie";
+                                        updated = true;
+                                    }
+                                });
+                            }
+                        });
+                        if (updated) {
+                            localStorage.setItem('pp_custom_poles_equipe', JSON.stringify(parsed));
+                        }
+                        return parsed;
+                    }
                 } catch (e) {
                     console.error("Erreur lecture custom poles:", e);
                 }
