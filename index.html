@@ -3528,9 +3528,9 @@
                     avatarHtml = `<div style="width:56px; height:56px; border-radius:50%; background:${bgGrad}; color:white; display:flex; justify-content:center; align-items:center; font-weight:800; font-size:1.2rem; margin:0 auto 10px; border:2px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.15);">${escapeHTML(initials.toUpperCase())}</div>`;
                 }
 
-                // Notification badge pour cet élève
+                // Notification badge pour cet élève (avec rétrocompatibilité anciens suivis sans scope)
                 const eleveTrackings = trackings.filter(t =>
-                    t.scope === 'classe' || (t.scope === 'eleve' && String(t.eleveId) === String(e.id))
+                    t.scope === 'classe' || (!t.scope && !t.eleveId) || (t.scope === 'eleve' && String(t.eleveId) === String(e.id)) || (!t.scope && String(t.eleveId) === String(e.id))
                 );
                 let countPendingEleve = 0;
                 eleveTrackings.forEach(t => {
@@ -6736,13 +6736,28 @@
 
             const backupNotes = JSON.parse(backupNotesStr);
             const backupData = JSON.parse(backupDataStr);
+            const backupTrackings = typeof getDocTrackings === 'function' ? getDocTrackings() : [];
+            const backupClasseProfil = typeof getClasseProfil === 'function' ? getClasseProfil() : null;
+            const backupClasseObs = typeof getClasseObservations === 'function' ? getClasseObservations() : [];
+            let backupTeam = {};
+            try { backupTeam = JSON.parse(localStorage.getItem('pp_teachers_team')) || {}; } catch (e) { }
+            let backupPoles = null;
+            try { backupPoles = JSON.parse(localStorage.getItem('pp_custom_poles_equipe')); } catch (e) { }
+            let backupHvc = [];
+            try { backupHvc = JSON.parse(localStorage.getItem('pp_hvc_sessions')) || []; } catch (e) { }
 
             const backupPayload = {
                 signature: "CarnetDeBord_PP_FULL_BACKUP",
-                version: "4.2",
+                version: "4.3",
                 exportDate: new Date().toISOString(),
                 eleves: backupData,
                 notesRappels: backupNotes,
+                docTrackings: backupTrackings,
+                classeProfil: backupClasseProfil,
+                classeObservations: backupClasseObs,
+                teachersTeam: backupTeam,
+                customPoles: backupPoles,
+                hvcSessions: backupHvc,
                 raw_ls: {}
             };
 
@@ -6753,7 +6768,7 @@
             });
 
             const jsonString = JSON.stringify(backupPayload, null, 2);
-            const successMsg = `Sauvegarde réussie !<br><br>📊 <b>${backupData.length}</b> élèves<br>📌 <b>${backupNotes.length}</b> notes/rappels<br>📂 Fichier : <b>${fileName}</b>`;
+            const successMsg = `Sauvegarde réussie !<br><br>📊 <b>${backupData.length}</b> élèves<br>📌 <b>${backupNotes.length}</b> notes/rappels<br>📋 <b>${backupTrackings.length}</b> suivi(s) de document<br>📂 Fichier : <b>${fileName}</b>`;
 
             if ('showSaveFilePicker' in window && window.location.protocol !== 'file:') {
                 try {
@@ -6798,45 +6813,110 @@
             reader.onload = (e) => {
                 try {
                     const data = JSON.parse(e.target.result);
-
-                    // MÉTHODE 1 : Restauration de l'état complet brut (v4.0)
-                    if (data && data.signature === "CarnetDeBord_PP_FULL_BACKUP" && data.raw_ls) {
-                        for (const key in data.raw_ls) {
-                            localStorage.setItem(key, data.raw_ls[key]);
-                        }
+                    if (!data || typeof data !== 'object') {
+                        throw new Error("Format de fichier JSON invalide.");
                     }
-                    // MÉTHODE 2 : Restauration par objets structurés (v1.0, v2.0, v3.0)
-                    else if (data && typeof data === 'object' && !Array.isArray(data)) {
-                        // Support Format "Storage" (v2.0)
-                        if (data.storage) {
-                            for (const k in data.storage) {
-                                localStorage.setItem(k, data.storage[k]);
+
+                    // 1. Restauration de l'état complet brut (data.raw_ls ou data.storage)
+                    const rawStorage = data.raw_ls || data.storage;
+                    if (rawStorage && typeof rawStorage === 'object') {
+                        for (const key in rawStorage) {
+                            if (Object.prototype.hasOwnProperty.call(rawStorage, key)) {
+                                const val = rawStorage[key];
+                                const strVal = (typeof val === 'string') ? val : JSON.stringify(val);
+                                localStorage.setItem(key, strVal);
                             }
                         }
-                        // Support Formats Explicites (v1.0, v3.0)
-                        if (data.eleves) {
-                            localStorage.setItem('pp_data', JSON.stringify(data.eleves));
-                        }
-                        if (data.notesRappels) {
-                            localStorage.setItem('pp_notes_rappels', JSON.stringify(data.notesRappels));
-                        }
-                        if (data.theme) {
-                            localStorage.setItem('pp_theme', data.theme);
-                        }
                     }
-                    // MÉTHODE 3 : Format très ancien (uniquement le tableau d'élèves)
-                    else if (Array.isArray(data)) {
+
+                    // 2. Restauration explicite des clés racines (compatibilité multi-versions)
+                    // a) Élèves
+                    if (data.eleves && Array.isArray(data.eleves)) {
+                        localStorage.setItem('pp_data', JSON.stringify(data.eleves));
+                    } else if (Array.isArray(data)) {
                         localStorage.setItem('pp_data', JSON.stringify(data));
                     }
 
-                    showModal("Importation", "Données restaurées (Élèves + Notes & Rappels) ! Redémarrage...", [{
+                    // b) Notes & Rappels
+                    if (data.notesRappels && Array.isArray(data.notesRappels)) {
+                        localStorage.setItem('pp_notes_rappels', JSON.stringify(data.notesRappels));
+                    }
+
+                    // c) Thème
+                    if (data.theme) {
+                        localStorage.setItem('pp_theme', data.theme);
+                    }
+
+                    // d) Suivis de documents (toutes variantes de clés)
+                    let docTrackingsImport = null;
+                    if (data.docTrackings) docTrackingsImport = data.docTrackings;
+                    else if (data.pp_doc_trackings) docTrackingsImport = data.pp_doc_trackings;
+                    else if (data.trackings) docTrackingsImport = data.trackings;
+                    else if (data.suiviDocs) docTrackingsImport = data.suiviDocs;
+                    else if (data.suivis) docTrackingsImport = data.suivis;
+                    else if (data.doc_trackings) docTrackingsImport = data.doc_trackings;
+                    else if (data.suivi_docs) docTrackingsImport = data.suivi_docs;
+
+                    if (docTrackingsImport) {
+                        let parsedTrackings = docTrackingsImport;
+                        if (typeof parsedTrackings === 'string') {
+                            try { parsedTrackings = JSON.parse(parsedTrackings); } catch (err) { }
+                        }
+                        if (Array.isArray(parsedTrackings)) {
+                            const cleanTrackings = parsedTrackings.map(t => normalizeDocTracking(t)).filter(Boolean);
+                            localStorage.setItem('pp_doc_trackings', JSON.stringify(cleanTrackings));
+                        }
+                    } else if (localStorage.getItem('pp_doc_trackings')) {
+                        // Si chargé depuis raw_ls/storage, normaliser les données existantes
+                        const curTrackings = getDocTrackings();
+                        localStorage.setItem('pp_doc_trackings', JSON.stringify(curTrackings));
+                    }
+
+                    // e) Profil classe
+                    if (data.classeProfil || data.pp_classe_profil) {
+                        const val = data.classeProfil || data.pp_classe_profil;
+                        localStorage.setItem('pp_classe_profil', typeof val === 'string' ? val : JSON.stringify(val));
+                    }
+
+                    // f) Observations classe
+                    if (data.classeObservations || data.pp_classe_observations) {
+                        const val = data.classeObservations || data.pp_classe_observations;
+                        localStorage.setItem('pp_classe_observations', typeof val === 'string' ? val : JSON.stringify(val));
+                    }
+
+                    // g) Équipe pédagogique
+                    if (data.teachersTeam || data.pp_teachers_team || data.equipe) {
+                        const val = data.teachersTeam || data.pp_teachers_team || data.equipe;
+                        localStorage.setItem('pp_teachers_team', typeof val === 'string' ? val : JSON.stringify(val));
+                    }
+
+                    // h) Pôles équipe
+                    if (data.customPoles || data.pp_custom_poles_equipe || data.poles) {
+                        const val = data.customPoles || data.pp_custom_poles_equipe || data.poles;
+                        localStorage.setItem('pp_custom_poles_equipe', typeof val === 'string' ? val : JSON.stringify(val));
+                    }
+
+                    // i) Sessions HVC
+                    if (data.hvcSessions || data.pp_hvc_sessions || data.hvcSeances) {
+                        const val = data.hvcSessions || data.pp_hvc_sessions || data.hvcSeances;
+                        localStorage.setItem('pp_hvc_sessions', typeof val === 'string' ? val : JSON.stringify(val));
+                    }
+
+                    // Récapitulatif
+                    let nbEleves = 0;
+                    try { nbEleves = JSON.parse(localStorage.getItem('pp_data') || '[]').length; } catch (e) { }
+                    let nbNotes = 0;
+                    try { nbNotes = JSON.parse(localStorage.getItem('pp_notes_rappels') || '[]').length; } catch (e) { }
+                    const nbTrackings = getDocTrackings().length;
+
+                    showModal("Importation réussie", `Données restaurées avec succès !<br><br>📊 <b>${nbEleves}</b> élèves<br>📌 <b>${nbNotes}</b> notes & rappels<br>📋 <b>${nbTrackings}</b> suivi(s) de document<br><br>Redémarrage de l'application...`, [{
                         text: "Continuer",
                         cls: 'btn-green',
                         onclick: () => location.reload()
                     }]);
                 } catch (err) {
-                    showModal("Erreur", "Fichier de sauvegarde illisible.");
-                    console.error("Erreur import:", err);
+                    showModal("Erreur", "Fichier de sauvegarde illisible ou format invalide.");
+                    console.error("Erreur import JSON:", err);
                 }
             };
             reader.readAsText(event.target.files[0]);
@@ -6907,10 +6987,13 @@
                 signature: "CarnetDeBord_PP_FULL_BACKUP",
                 archiveType: "ARCHIVE_ANNEE_SCOLAIRE",
                 anneeScolaire: anneeInput,
-                version: "4.2",
+                version: "4.3",
                 exportDate: new Date().toISOString(),
                 eleves: JSON.parse(backupDataStr),
                 notesRappels: JSON.parse(backupNotesStr),
+                docTrackings: typeof getDocTrackings === 'function' ? getDocTrackings() : [],
+                classeProfil: typeof getClasseProfil === 'function' ? getClasseProfil() : null,
+                classeObservations: typeof getClasseObservations === 'function' ? getClasseObservations() : [],
                 raw_ls: {}
             };
 
@@ -8602,12 +8685,72 @@
         }
 
         /* --- GESTION DU SUIVI DE DOCUMENTS & SIGNATURES --- */
+        function normalizeDocTracking(t) {
+            if (!t || typeof t !== 'object') return null;
+            const copy = Object.assign({}, t);
+
+            // Rétrocompatibilité scope : si absent, par défaut 'classe' sauf si un élève précis est ciblé
+            if (!copy.scope) {
+                copy.scope = (copy.eleveId !== undefined && copy.eleveId !== null && copy.eleveId !== '') ? 'eleve' : 'classe';
+            }
+
+            // Identifiant unique
+            if (!copy.id) {
+                copy.id = 'track_' + (copy.dateCreation ? new Date(copy.dateCreation).getTime() : Date.now()) + '_' + Math.random().toString(36).substring(2, 7);
+            }
+
+            // Intitulé
+            if (!copy.intitule) {
+                copy.intitule = copy.titre || copy.nom || copy.label || copy.document || 'Document sans titre';
+            }
+
+            // Type de suivi
+            if (!copy.type) {
+                copy.type = 'distribue_recupere';
+            }
+
+            // Statuts par élève
+            if (!copy.statuts || typeof copy.statuts !== 'object') {
+                copy.statuts = {};
+            }
+
+            return copy;
+        }
+
         function getDocTrackings() {
-            return JSON.parse(localStorage.getItem('pp_doc_trackings')) || [];
+            try {
+                const raw = localStorage.getItem('pp_doc_trackings');
+                if (!raw) return [];
+                let parsed = raw;
+                if (typeof raw === 'string') {
+                    if (raw.startsWith('[object Object]')) {
+                        console.warn("pp_doc_trackings corrompu :", raw);
+                        return [];
+                    }
+                    parsed = JSON.parse(raw);
+                }
+                if (!Array.isArray(parsed)) {
+                    if (parsed && typeof parsed === 'object') {
+                        parsed = Object.values(parsed);
+                    } else {
+                        return [];
+                    }
+                }
+                return parsed.map(normalizeDocTracking).filter(Boolean);
+            } catch (e) {
+                console.error("Erreur lecture pp_doc_trackings :", e);
+                return [];
+            }
         }
 
         function saveDocTrackings(trackings) {
-            localStorage.setItem('pp_doc_trackings', JSON.stringify(trackings));
+            try {
+                if (!Array.isArray(trackings)) trackings = [];
+                const clean = trackings.map(normalizeDocTracking).filter(Boolean);
+                localStorage.setItem('pp_doc_trackings', JSON.stringify(clean));
+            } catch (e) {
+                console.error("Erreur sauvegarde pp_doc_trackings :", e);
+            }
         }
 
         let indexModificationProfilClasse = null;
@@ -9114,7 +9257,7 @@
             const btnFicheClasse = document.getElementById('btn-home-fiche-classe');
             if (btnFicheClasse) {
                 let existingBadge = document.getElementById('notif-badge-fiche-classe');
-                const classTrackings = trackings.filter(t => t.scope === 'classe');
+                const classTrackings = trackings.filter(t => t.scope === 'classe' || (!t.scope && !t.eleveId));
 
                 let countMissingClassReturns = 0;
                 if (typeof eleves !== 'undefined' && eleves.length > 0) {
@@ -9181,7 +9324,12 @@
             if (!container) return;
 
             const trackings = getDocTrackings();
-            const eleveTrackings = trackings.filter(t => t.scope === 'classe' || (t.scope === 'eleve' && String(t.eleveId) === String(eleveId)));
+            const eleveTrackings = trackings.filter(t =>
+                t.scope === 'classe' ||
+                (!t.scope && !t.eleveId) ||
+                (t.scope === 'eleve' && String(t.eleveId) === String(eleveId)) ||
+                (!t.scope && String(t.eleveId) === String(eleveId))
+            );
 
             if (eleveTrackings.length === 0) {
                 container.innerHTML = `
@@ -9197,7 +9345,7 @@
 
             eleveTrackings.forEach(t => {
                 const tMeta = getTrackingTypeLabel(t.type);
-                const rawObj = (t.statuts && t.statuts[eleveId]) ? t.statuts[eleveId] : { statut: 'attente', date: null, distribue: false };
+                const rawObj = (t.statuts && (t.statuts[eleveId] || t.statuts[String(eleveId)])) ? (t.statuts[eleveId] || t.statuts[String(eleveId)]) : { statut: 'attente', date: null, distribue: false };
                 const isRendu = rawObj.statut === 'rendu';
                 const isDistribue = rawObj.distribue || isRendu;
 
@@ -9206,7 +9354,7 @@
                     isLate = true;
                 }
 
-                let badgeScope = t.scope === 'classe'
+                let badgeScope = (t.scope === 'classe' || (!t.scope && !t.eleveId))
                     ? `<span style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;">🏫 Classe</span>`
                     : `<span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;">👤 Individuel</span>`;
 
@@ -9246,7 +9394,7 @@
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             ${actionButtonsHtml}
-                            ${t.scope === 'eleve' ? `<button class="btn-tiny btn-red" onclick="supprimerTrackingDoc('${t.id}')" title="Supprimer" style="padding: 6px 8px;">🗑️</button>` : ''}
+                            ${(t.scope === 'eleve' || t.eleveId) ? `<button class="btn-tiny btn-red" onclick="supprimerTrackingDoc('${t.id}')" title="Supprimer" style="padding: 6px 8px;">🗑️</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -9260,7 +9408,7 @@
             const badge = document.getElementById('fiche-classe-stats-badge');
             if (!container) return;
 
-            const trackings = getDocTrackings().filter(t => t.scope === 'classe');
+            const trackings = getDocTrackings().filter(t => t.scope === 'classe' || (!t.scope && !t.eleveId));
             if (badge) badge.textContent = `${trackings.length} suivi${trackings.length > 1 ? 's' : ''} de classe`;
 
             if (eleves.length === 0) {
@@ -9298,7 +9446,7 @@
                 let countDistribue = 0;
                 let countRendu = 0;
                 sortedEleves.forEach(el => {
-                    const st = t.statuts && t.statuts[el.id] ? t.statuts[el.id] : {};
+                    const st = (t.statuts && (t.statuts[el.id] || t.statuts[String(el.id)])) ? (t.statuts[el.id] || t.statuts[String(el.id)]) : {};
                     if (st.distribue || st.statut === 'rendu') countDistribue++;
                     if (st.statut === 'rendu') countRendu++;
                 });
@@ -9354,7 +9502,7 @@
                 `;
 
                 trackings.forEach(t => {
-                    const st = (t.statuts && t.statuts[el.id]) ? t.statuts[el.id] : { statut: 'attente', distribue: false };
+                    const st = (t.statuts && (t.statuts[el.id] || t.statuts[String(el.id)])) ? (t.statuts[el.id] || t.statuts[String(el.id)]) : { statut: 'attente', distribue: false };
                     const isRendu = st.statut === 'rendu';
                     const isDistribue = st.distribue || isRendu;
                     const isLate = !isRendu && t.dateLimite && t.dateLimite < todayStr;
