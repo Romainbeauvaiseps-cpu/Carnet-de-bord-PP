@@ -6746,9 +6746,12 @@
             let backupHvc = [];
             try { backupHvc = JSON.parse(localStorage.getItem('pp_hvc_sessions')) || []; } catch (e) { }
 
+            // Exportation des documents élèves et classe depuis IndexedDB
+            const backupDocs = typeof recupererTousLesDocumentsDB === 'function' ? await recupererTousLesDocumentsDB() : [];
+
             const backupPayload = {
                 signature: "CarnetDeBord_PP_FULL_BACKUP",
-                version: "4.3",
+                version: "4.4",
                 exportDate: new Date().toISOString(),
                 eleves: backupData,
                 notesRappels: backupNotes,
@@ -6758,6 +6761,7 @@
                 teachersTeam: backupTeam,
                 customPoles: backupPoles,
                 hvcSessions: backupHvc,
+                documents: backupDocs,
                 raw_ls: {}
             };
 
@@ -6768,7 +6772,8 @@
             });
 
             const jsonString = JSON.stringify(backupPayload, null, 2);
-            const successMsg = `Sauvegarde réussie !<br><br>📊 <b>${backupData.length}</b> élèves<br>📌 <b>${backupNotes.length}</b> notes/rappels<br>📋 <b>${backupTrackings.length}</b> suivi(s) de document<br>📂 Fichier : <b>${fileName}</b>`;
+            const docMsg = backupDocs.length > 0 ? `<br>📁 <b>${backupDocs.length}</b> document(s) élève/classe` : '';
+            const successMsg = `Sauvegarde réussie !<br><br>📊 <b>${backupData.length}</b> élèves<br>📌 <b>${backupNotes.length}</b> notes/rappels<br>📋 <b>${backupTrackings.length}</b> suivi(s) de document${docMsg}<br>📂 Fichier : <b>${fileName}</b>`;
 
             if ('showSaveFilePicker' in window && window.location.protocol !== 'file:') {
                 try {
@@ -6809,8 +6814,11 @@
 
 
         function chargerFichierJSON(event) {
+            const file = event.target && event.target.files && event.target.files[0];
+            if (!file) return;
+
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = async (e) => {
                 try {
                     const data = JSON.parse(e.target.result);
                     if (!data || typeof data !== 'object') {
@@ -6831,10 +6839,15 @@
 
                     // 2. Restauration explicite des clés racines (compatibilité multi-versions)
                     // a) Élèves
+                    let rawEleves = [];
                     if (data.eleves && Array.isArray(data.eleves)) {
+                        rawEleves = data.eleves;
                         localStorage.setItem('pp_data', JSON.stringify(data.eleves));
                     } else if (Array.isArray(data)) {
+                        rawEleves = data;
                         localStorage.setItem('pp_data', JSON.stringify(data));
+                    } else if (localStorage.getItem('pp_data')) {
+                        try { rawEleves = JSON.parse(localStorage.getItem('pp_data')) || []; } catch (err) { }
                     }
 
                     // b) Notes & Rappels
@@ -6902,6 +6915,85 @@
                         localStorage.setItem('pp_hvc_sessions', typeof val === 'string' ? val : JSON.stringify(val));
                     }
 
+                    // j) DOCUMENTS ÉLÈVE & CLASSE (IndexedDB)
+                    let nbDocsImportes = 0;
+                    const docsToRestore = [];
+
+                    // 1. Racine data.documents
+                    if (data.documents) {
+                        if (Array.isArray(data.documents)) {
+                            docsToRestore.push(...data.documents);
+                        } else if (typeof data.documents === 'object') {
+                            Object.entries(data.documents).forEach(([k, v]) => {
+                                if (Array.isArray(v)) {
+                                    v.forEach(item => {
+                                        if (item && typeof item === 'object') {
+                                            if (!item.eleveId) item.eleveId = k;
+                                            docsToRestore.push(item);
+                                        }
+                                    });
+                                } else if (v && typeof v === 'object') {
+                                    if (!v.eleveId) v.eleveId = k;
+                                    docsToRestore.push(v);
+                                }
+                            });
+                        }
+                    }
+
+                    // 2. Clés alternatives pour documents
+                    const altDocKeys = ['docs', 'documentsEleves', 'eleveDocuments', 'docsDB', 'fichiers'];
+                    for (const k of altDocKeys) {
+                        if (data[k] && Array.isArray(data[k])) {
+                            docsToRestore.push(...data[k]);
+                        }
+                    }
+
+                    // 3. Documents de classe
+                    if (data.documentsClasse && Array.isArray(data.documentsClasse)) {
+                        data.documentsClasse.forEach(cd => {
+                            if (cd && typeof cd === 'object') {
+                                cd.eleveId = 'classe';
+                                docsToRestore.push(cd);
+                            }
+                        });
+                    }
+
+                    // 4. Documents imbriqués dans les élèves (eleve.documents, eleve.docs, eleve.fichiers...)
+                    if (Array.isArray(rawEleves)) {
+                        rawEleves.forEach(el => {
+                            if (el && typeof el === 'object') {
+                                const inlineDocs = el.documents || el.docs || el.fichiers || el.piecesJointes;
+                                if (Array.isArray(inlineDocs)) {
+                                    inlineDocs.forEach(d => {
+                                        if (d && typeof d === 'object') {
+                                            const norm = (typeof normaliserDocumentObjet === 'function')
+                                                ? normaliserDocumentObjet(d, el.id)
+                                                : Object.assign({}, d, { eleveId: el.id });
+                                            if (norm) docsToRestore.push(norm);
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }
+
+                    // Sauvegarde effective dans IndexedDB
+                    if (docsToRestore.length > 0 && typeof sauvegarderDocumentDB === 'function') {
+                        for (const docItem of docsToRestore) {
+                            const norm = (typeof normaliserDocumentObjet === 'function')
+                                ? normaliserDocumentObjet(docItem)
+                                : docItem;
+                            if (norm && norm.id) {
+                                try {
+                                    await sauvegarderDocumentDB(norm);
+                                    nbDocsImportes++;
+                                } catch (errDoc) {
+                                    console.error("Erreur sauvegarde document importé:", docItem, errDoc);
+                                }
+                            }
+                        }
+                    }
+
                     // Récapitulatif
                     let nbEleves = 0;
                     try { nbEleves = JSON.parse(localStorage.getItem('pp_data') || '[]').length; } catch (e) { }
@@ -6909,7 +7001,12 @@
                     try { nbNotes = JSON.parse(localStorage.getItem('pp_notes_rappels') || '[]').length; } catch (e) { }
                     const nbTrackings = getDocTrackings().length;
 
-                    showModal("Importation réussie", `Données restaurées avec succès !<br><br>📊 <b>${nbEleves}</b> élèves<br>📌 <b>${nbNotes}</b> notes & rappels<br>📋 <b>${nbTrackings}</b> suivi(s) de document<br><br>Redémarrage de l'application...`, [{
+                    let msgDocs = '';
+                    if (nbDocsImportes > 0) {
+                        msgDocs = `<br>📁 <b>${nbDocsImportes}</b> document(s) élève / classe restauré(s)`;
+                    }
+
+                    showModal("Importation réussie", `Données restaurées avec succès !<br><br>📊 <b>${nbEleves}</b> élèves<br>📌 <b>${nbNotes}</b> notes & rappels<br>📋 <b>${nbTrackings}</b> suivi(s) de document${msgDocs}<br><br>Redémarrage de l'application...`, [{
                         text: "Continuer",
                         cls: 'btn-green',
                         onclick: () => location.reload()
@@ -6917,9 +7014,11 @@
                 } catch (err) {
                     showModal("Erreur", "Fichier de sauvegarde illisible ou format invalide.");
                     console.error("Erreur import JSON:", err);
+                } finally {
+                    if (event.target) event.target.value = '';
                 }
             };
-            reader.readAsText(event.target.files[0]);
+            reader.readAsText(file);
         }
 
         /* --- ARCHIVAGE FIN D'ANNÉE --- */
@@ -6982,18 +7081,20 @@
             // 2. Format du payload
             const backupNotesStr = localStorage.getItem('pp_notes_rappels') || '[]';
             const backupDataStr = localStorage.getItem('pp_data') || '[]';
+            const backupDocs = typeof recupererTousLesDocumentsDB === 'function' ? await recupererTousLesDocumentsDB() : [];
 
             const backupPayload = {
                 signature: "CarnetDeBord_PP_FULL_BACKUP",
                 archiveType: "ARCHIVE_ANNEE_SCOLAIRE",
                 anneeScolaire: anneeInput,
-                version: "4.3",
+                version: "4.4",
                 exportDate: new Date().toISOString(),
                 eleves: JSON.parse(backupDataStr),
                 notesRappels: JSON.parse(backupNotesStr),
                 docTrackings: typeof getDocTrackings === 'function' ? getDocTrackings() : [],
                 classeProfil: typeof getClasseProfil === 'function' ? getClasseProfil() : null,
                 classeObservations: typeof getClasseObservations === 'function' ? getClasseObservations() : [],
+                documents: backupDocs,
                 raw_ls: {}
             };
 
@@ -7064,6 +7165,7 @@
             } else if (selectedMode === 'full_reset') {
                 showConfirm("Réinitialisation Nouvelle Classe", "L'archive a bien été téléchargée sur votre appareil.<br><br>Voulez-vous vraiment <b>effacer toutes les données et la liste des élèves</b> pour démarrer une nouvelle classe à zéro ?", () => {
                     localStorage.clear();
+                    try { indexedDB.deleteDatabase('CarnetBordPP_DocsDB'); } catch (e) { }
                     showModal("Application Réinitialisée", "Carnet vierge prêt pour la nouvelle année scolaire.", [{
                         text: "Démarrer",
                         cls: 'btn-green',
@@ -8359,7 +8461,7 @@
             });
         }
 
-        /* --- GESTION DES DOCUMENTS ÉLÈVE (INDEXEDDB) --- */
+        /* --- GESTION DES DOCUMENTS ÉLÈVE & CLASSE (INDEXEDDB) --- */
         let docsDB = null;
 
         function initDocsDB() {
@@ -8403,11 +8505,64 @@
                     const store = tx.objectStore('documents');
                     const index = store.index('eleveId');
                     const req = index.getAll(eleveId);
+                    req.onsuccess = () => {
+                        const res = req.result || [];
+                        if (res.length > 0) return resolve(res);
+
+                        // Fallback 1 : Test avec conversion éventuelle Nombre <-> Chaîne
+                        let altId = null;
+                        if (typeof eleveId === 'number') {
+                            altId = String(eleveId);
+                        } else if (typeof eleveId === 'string' && !isNaN(Number(eleveId)) && eleveId.trim() !== '') {
+                            altId = Number(eleveId);
+                        }
+
+                        if (altId !== null) {
+                            const reqAlt = index.getAll(altId);
+                            reqAlt.onsuccess = () => {
+                                const resAlt = reqAlt.result || [];
+                                if (resAlt.length > 0) return resolve(resAlt);
+                                fallbackGetAllDocs(store, eleveId, resolve);
+                            };
+                            reqAlt.onerror = () => fallbackGetAllDocs(store, eleveId, resolve);
+                        } else {
+                            fallbackGetAllDocs(store, eleveId, resolve);
+                        }
+                    };
+                    req.onerror = () => fallbackGetAllDocs(store, eleveId, resolve);
+                });
+            } catch (err) {
+                console.error("Erreur récupération documents", err);
+                return [];
+            }
+        }
+
+        function fallbackGetAllDocs(store, eleveId, resolve) {
+            try {
+                const allReq = store.getAll();
+                allReq.onsuccess = () => {
+                    const allDocs = allReq.result || [];
+                    const filtered = allDocs.filter(d => String(d.eleveId) === String(eleveId));
+                    resolve(filtered);
+                };
+                allReq.onerror = () => resolve([]);
+            } catch (e) {
+                resolve([]);
+            }
+        }
+
+        async function recupererTousLesDocumentsDB() {
+            try {
+                const db = await initDocsDB();
+                return new Promise((resolve) => {
+                    const tx = db.transaction('documents', 'readonly');
+                    const store = tx.objectStore('documents');
+                    const req = store.getAll();
                     req.onsuccess = () => resolve(req.result || []);
                     req.onerror = () => resolve([]);
                 });
             } catch (err) {
-                console.error("Erreur récupération documents", err);
+                console.error("Erreur récupération tous les documents", err);
                 return [];
             }
         }
@@ -8438,6 +8593,90 @@
             });
         }
 
+        function normaliserDocumentObjet(doc, defaultEleveId = null) {
+            if (!doc || typeof doc !== 'object') return null;
+            const fileData = doc.data || doc.base64 || doc.fileData || doc.content || doc.contenu || doc.url || '';
+
+            const docId = doc.id || ('doc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7));
+            let targetEleveId = (doc.eleveId !== undefined && doc.eleveId !== null && doc.eleveId !== '') ? doc.eleveId
+                : (doc.idEleve !== undefined && doc.idEleve !== null && doc.idEleve !== '') ? doc.idEleve
+                    : (doc.studentId !== undefined && doc.studentId !== null && doc.studentId !== '') ? doc.studentId
+                        : defaultEleveId;
+
+            // Harmoniser le type de targetEleveId si l'élève existe dans la liste
+            if (targetEleveId !== null && targetEleveId !== 'classe' && typeof eleves !== 'undefined' && Array.isArray(eleves)) {
+                const match = eleves.find(el => String(el.id) === String(targetEleveId));
+                if (match) {
+                    targetEleveId = match.id;
+                }
+            }
+
+            const name = doc.name || doc.nom || doc.fileName || doc.fichier || doc.titre || 'Document';
+            let type = doc.type || doc.fileType || doc.mimeType || '';
+            if (!type) {
+                const ext = name ? name.split('.').pop().toLowerCase() : '';
+                if (ext === 'pdf') type = 'application/pdf';
+                else if (['jpg', 'jpeg'].includes(ext)) type = 'image/jpeg';
+                else if (ext === 'png') type = 'image/png';
+                else if (ext === 'webp') type = 'image/webp';
+                else if (ext === 'gif') type = 'image/gif';
+                else if (ext === 'svg') type = 'image/svg+xml';
+                else if (['doc', 'docx'].includes(ext)) type = 'application/msword';
+                else if (['xls', 'xlsx'].includes(ext)) type = 'application/vnd.ms-excel';
+                else if (['txt', 'csv', 'md'].includes(ext)) type = 'text/plain';
+                else type = 'application/octet-stream';
+            }
+
+            const size = doc.size || doc.taille || (fileData ? Math.round(fileData.length * 0.75) : 0);
+            const date = doc.date || doc.dateAjout || doc.dateUpload || new Date().toISOString();
+
+            return {
+                id: String(docId),
+                eleveId: targetEleveId !== null ? targetEleveId : 'classe',
+                name: String(name),
+                type: String(type),
+                size: Number(size) || 0,
+                date: String(date),
+                data: String(fileData)
+            };
+        }
+
+        async function migrerDocumentsDepuisEleves() {
+            try {
+                if (!Array.isArray(eleves) || eleves.length === 0) return 0;
+                let count = 0;
+                let needsSave = false;
+                for (const el of eleves) {
+                    const inlineDocs = el.documents || el.docs || el.fichiers || el.piecesJointes;
+                    if (Array.isArray(inlineDocs) && inlineDocs.length > 0) {
+                        for (const d of inlineDocs) {
+                            const norm = normaliserDocumentObjet(d, el.id);
+                            if (norm) {
+                                await sauvegarderDocumentDB(norm);
+                                count++;
+                            }
+                        }
+                        // Nettoyer les documents intégrés dans localStorage pour préserver le quota de 5Mo
+                        delete el.documents;
+                        delete el.docs;
+                        delete el.fichiers;
+                        delete el.piecesJointes;
+                        needsSave = true;
+                    }
+                }
+                if (needsSave && typeof sauvegarder === 'function') {
+                    sauvegarder();
+                }
+                if (count > 0) {
+                    console.log(`[IndexedDB] ${count} document(s) synchronisé(s) depuis les fiches élèves.`);
+                }
+                return count;
+            } catch (e) {
+                console.error("Erreur synchronisation documents élèves vers IndexedDB:", e);
+                return 0;
+            }
+        }
+
         function formatFileSize(bytes) {
             if (!bytes || bytes === 0) return '0 Octet';
             const k = 1024;
@@ -8463,7 +8702,25 @@
 
             container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 20px;">Chargement des documents...</p>';
 
-            const docs = await recupererDocumentsEleveDB(eleveId);
+            let docs = await recupererDocumentsEleveDB(eleveId);
+
+            // Si aucun document en base, vérifier si la fiche élève en mémoire contient des documents non encore migrés
+            if (docs.length === 0 && typeof eleves !== 'undefined' && Array.isArray(eleves)) {
+                const el = eleves.find(e => String(e.id) === String(eleveId));
+                if (el) {
+                    const inlineDocs = el.documents || el.docs || el.fichiers || el.piecesJointes;
+                    if (Array.isArray(inlineDocs) && inlineDocs.length > 0) {
+                        for (const d of inlineDocs) {
+                            const norm = normaliserDocumentObjet(d, el.id);
+                            if (norm) {
+                                await sauvegarderDocumentDB(norm);
+                            }
+                        }
+                        docs = await recupererDocumentsEleveDB(eleveId);
+                    }
+                }
+            }
+
             if (badge) badge.textContent = `${docs.length} document${docs.length > 1 ? 's' : ''}`;
 
             if (docs.length === 0) {
@@ -8601,6 +8858,11 @@
                 return;
             }
 
+            if (!doc.data || doc.data.trim() === '') {
+                showModal("Information", `Le document <b>${escapeHTML(doc.name)}</b> est référencé mais ses données de fichier ne sont pas intégrées dans la sauvegarde.`);
+                return;
+            }
+
             const modal = document.getElementById('modal-preview-doc');
             const titleEl = document.getElementById('modal-preview-doc-title');
             const iconEl = document.getElementById('modal-preview-doc-icon');
@@ -8656,8 +8918,8 @@
 
         async function telechargerDocument(docId) {
             const doc = await recupererDocumentParIdDB(docId);
-            if (!doc || !doc.data) {
-                showModal("Erreur", "Impossible d'importer le fichier.");
+            if (!doc || !doc.data || doc.data.trim() === '') {
+                showModal("Erreur", "Données de fichier indisponibles pour le téléchargement.");
                 return;
             }
             const link = document.createElement('a');
@@ -9546,6 +9808,7 @@
         showSection('section-home');
         miseAJourBadgeRappels();
         updateNotificationBadges();
+        migrerDocumentsDepuisEleves();
     </script>
 </body>
 
