@@ -2905,6 +2905,143 @@
             ]);
         }
 
+        /* --- UTILITAIRES DE TÉLÉCHARGEMENT UNIVERSEL (COMPATIBILITÉ IPAD / IOS PWA STANDALONE) --- */
+
+        function isIOSDevice() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+
+        function isStandaloneApp() {
+            return (window.navigator.standalone === true) ||
+                (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+        }
+
+        function getMimeTypeFromFileName(fileName) {
+            const ext = (fileName || '').split('.').pop().toLowerCase();
+            switch (ext) {
+                case 'pdf': return 'application/pdf';
+                case 'png': return 'image/png';
+                case 'jpg':
+                case 'jpeg': return 'image/jpeg';
+                case 'gif': return 'image/gif';
+                case 'webp': return 'image/webp';
+                case 'svg': return 'image/svg+xml';
+                case 'txt': return 'text/plain';
+                case 'csv': return 'text/csv';
+                case 'json': return 'application/json';
+                case 'doc': return 'application/msword';
+                case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                case 'xls': return 'application/vnd.ms-excel';
+                case 'xlsx': return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                default: return 'application/octet-stream';
+            }
+        }
+
+        function dataURItoBlob(dataURI, defaultMime = 'application/octet-stream') {
+            if (!dataURI) return new Blob([], { type: defaultMime });
+            if (dataURI instanceof Blob) return dataURI;
+
+            if (typeof dataURI === 'string' && dataURI.startsWith('data:')) {
+                const parts = dataURI.split(',');
+                const isBase64 = parts[0].indexOf('base64') >= 0;
+                const mimeMatch = parts[0].match(/:(.*?);/);
+                const mime = mimeMatch ? mimeMatch[1] : defaultMime;
+
+                if (isBase64) {
+                    const byteCharacters = atob(parts[1]);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    return new Blob([byteArray], { type: mime });
+                } else {
+                    const decoded = decodeURIComponent(parts[1]);
+                    return new Blob([decoded], { type: mime });
+                }
+            }
+
+            if (typeof dataURI === 'string') {
+                return new Blob([dataURI], { type: defaultMime });
+            }
+
+            return new Blob([], { type: defaultMime });
+        }
+
+        async function telechargerFichierUniversel(fileName, dataOrBlob, customMime = '') {
+            try {
+                const mime = customMime || getMimeTypeFromFileName(fileName);
+                const blob = dataOrBlob instanceof Blob ? dataOrBlob : dataURItoBlob(dataOrBlob, mime);
+                const isAppleMobile = isIOSDevice();
+                const isPWA = isStandaloneApp();
+
+                // 1. Sur iPad / iPhone (spécialement en mode PWA / raccourci d'accueil),
+                // WebKit bloque <a download> pour les data URIs ou sans gestionnaire de téléchargement.
+                // On utilise en priorité l'API native navigator.share qui ouvre la feuille de partage officielle
+                // avec "Enregistrer dans Fichiers", AirDrop, etc.
+                if ((isAppleMobile || isPWA) && typeof navigator !== 'undefined' && navigator.canShare) {
+                    try {
+                        const finalType = (blob && blob.type && blob.type !== 'application/octet-stream') ? blob.type : (mime || 'application/octet-stream');
+                        const file = new File([blob], fileName || "document", { type: finalType });
+                        if (navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                                files: [file],
+                                title: fileName || "document"
+                            });
+                            return true;
+                        }
+                    } catch (shareErr) {
+                        // Annulation de la feuille par l'utilisateur
+                        if (shareErr.name === 'AbortError') return false;
+                        console.warn("navigator.share a échoué, essai du repli...", shareErr);
+                    }
+                }
+
+                // 2. Si sur iOS / iPad mais que le partage n'a pas pu s'exécuter :
+                // Ouvrir le Blob URL dans une nouvelle fenêtre pour consultation / enregistrement direct
+                if (isAppleMobile) {
+                    const blobUrl = URL.createObjectURL(blob);
+                    const win = window.open(blobUrl, '_blank');
+                    if (!win) {
+                        const a = document.createElement('a');
+                        a.href = blobUrl;
+                        a.target = '_blank';
+                        a.rel = 'noopener noreferrer';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    }
+                    setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+                    return true;
+                }
+
+                // 3. Sur PC / Mac / Android standard : téléchargement classique direct
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = fileName || "document";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+                return true;
+
+            } catch (err) {
+                console.error("Erreur téléchargement fichier universel:", err);
+                try {
+                    if (typeof dataOrBlob === 'string' && dataOrBlob.startsWith('data:')) {
+                        window.open(dataOrBlob, '_blank');
+                        return true;
+                    }
+                } catch (e2) {
+                    showModal("Erreur", "Impossible d'enregistrer le fichier sur cet appareil.");
+                }
+                return false;
+            }
+        }
+
+
         /* --- APP LOGIQUE --- */
 
         function showSection(id) {
@@ -3768,12 +3905,7 @@
             if (ext === 'pdf') type = 'application/pdf';
             else if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) type = 'image/' + ext;
             visualiserFichierData(tempAcompFile.name, tempAcompFile.data, type, () => {
-                const link = document.createElement('a');
-                link.href = tempAcompFile.data;
-                link.download = tempAcompFile.name || "document";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                telechargerFichierUniversel(tempAcompFile.name || "document", tempAcompFile.data, type);
             });
         }
 
@@ -3933,19 +4065,14 @@
             visualiserFichierData(info.acompFile.name, info.acompFile.data, type, () => telechargerAcompFile(idx));
         }
 
-        function telechargerAcompFile(idx) {
+        async function telechargerAcompFile(idx) {
             if (typeof indexActuel === 'undefined' || !eleves[indexActuel]) return;
             const info = eleves[indexActuel].infosComplementaires?.[idx];
             if (!info || !info.acompFile || !info.acompFile.data) {
                 showModal("Erreur", "Données de fichier indisponibles pour le téléchargement.");
                 return;
             }
-            const link = document.createElement('a');
-            link.href = info.acompFile.data;
-            link.download = info.acompFile.name || "document";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            await telechargerFichierUniversel(info.acompFile.name || "document", info.acompFile.data);
         }
 
         function supprimerAcompFile(idx) {
@@ -5128,7 +5255,12 @@
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
-            html2pdf().set(opt).from(element).save();
+            html2pdf().set(opt).from(element).output('blob').then(async (blob) => {
+                await telechargerFichierUniversel(fileName, blob, 'application/pdf');
+            }).catch(err => {
+                console.warn("Erreur generation blob html2pdf, tentative .save()", err);
+                html2pdf().set(opt).from(element).save();
+            });
         }
 
         function imprimerFicheElevePDF() {
@@ -5579,7 +5711,12 @@
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
-            html2pdf().set(opt).from(element).save();
+            html2pdf().set(opt).from(element).output('blob').then(async (blob) => {
+                await telechargerFichierUniversel(fileName, blob, 'application/pdf');
+            }).catch(err => {
+                console.warn("Erreur generation blob html2pdf, tentative .save()", err);
+                html2pdf().set(opt).from(element).save();
+            });
         }
 
         function imprimerBilanTrimestrePDF() {
@@ -7371,12 +7508,8 @@
             }
 
             const blob = new Blob([jsonString], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            a.click();
-            URL.revokeObjectURL(url);
+            const ok = await telechargerFichierUniversel(fileName, blob, 'application/json');
+            if (ok === false) return;
 
             const isFileProtocol = window.location.protocol === 'file:';
             let infoMsg = successMsg;
@@ -7704,12 +7837,11 @@
 
             if (!downloadSuccess) {
                 const blob = new Blob([jsonString], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = fileName;
-                a.click();
-                URL.revokeObjectURL(url);
+                const ok = await telechargerFichierUniversel(fileName, blob, 'application/json');
+                if (ok === false && isStandaloneApp()) {
+                    fermerModalArchivage();
+                    return;
+                }
             }
 
             fermerModalArchivage();
@@ -9002,17 +9134,12 @@
             reader.readAsDataURL(file);
         }
 
-        function telechargerHVCFile(id) {
+        async function telechargerHVCFile(id) {
             const sessions = getHVCSessions();
             const s = sessions.find(x => x.id === id);
             if (!s || !s.fileData) return;
 
-            const link = document.createElement('a');
-            link.href = s.fileData;
-            link.download = s.fileName || "document_hvc";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            await telechargerFichierUniversel(s.fileName || "document_hvc", s.fileData);
         }
 
         function supprimerHVCSession(id) {
@@ -9445,16 +9572,11 @@
             if (iconEl) iconEl.textContent = docMeta.icon;
             if (titleEl) titleEl.textContent = fileName;
 
-            const handleDownload = () => {
+            const handleDownload = async () => {
                 if (typeof onDownload === 'function') {
-                    onDownload();
+                    await onDownload();
                 } else {
-                    const link = document.createElement('a');
-                    link.href = fileData;
-                    link.download = fileName || "document";
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
+                    await telechargerFichierUniversel(fileName || "document", fileData, fileType);
                 }
             };
 
@@ -9525,12 +9647,7 @@
                 showModal("Erreur", "Données de fichier indisponibles pour le téléchargement.");
                 return;
             }
-            const link = document.createElement('a');
-            link.href = doc.data;
-            link.download = doc.name || "document";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            await telechargerFichierUniversel(doc.name || "document", doc.data, doc.type);
         }
 
         function supprimerDocumentConfirm(docId, docName) {
