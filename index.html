@@ -2882,8 +2882,11 @@
                     btn.className = a.cls || 'btn-blue';
                     btn.textContent = a.text;
                     btn.onclick = () => {
+                        if (a.onclick) {
+                            const res = a.onclick();
+                            if (res === false) return;
+                        }
                         closeModal();
-                        if (a.onclick) a.onclick();
                     };
                     actContainer.appendChild(btn);
                 });
@@ -3725,23 +3728,74 @@
                 document.getElementById('acomp-info').value = "";
                 document.getElementById('acomp-amenagement').value = "";
                 document.getElementById('acomp-file').value = "";
-                document.getElementById('acomp-file-preview').textContent = "";
                 tempAcompFile = null;
+                updateAcompFilePreview();
             }
+        }
+
+        function updateAcompFilePreview() {
+            const previewEl = document.getElementById('acomp-file-preview');
+            if (!previewEl) return;
+            if (tempAcompFile && tempAcompFile.name) {
+                previewEl.innerHTML = `
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:8px; padding:6px 12px; background:white; border:1px solid var(--border); border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                        <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1;">
+                            <span style="font-size:1.1em;">📎</span>
+                            <span style="font-weight:600; color:var(--text); font-size:0.88em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHTML(tempAcompFile.name)}">${escapeHTML(tempAcompFile.name)}</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
+                            <button type="button" class="btn-tiny btn-blue" onclick="visualiserTempAcompFile()" style="padding:4px 8px; font-size:0.8em; display:flex; align-items:center; gap:3px;" title="Consulter">
+                                👁️ Consulter
+                            </button>
+                            <button type="button" class="btn-tiny btn-red" onclick="supprimerTempAcompFile()" style="padding:4px 8px; font-size:0.8em; display:flex; align-items:center; gap:3px;" title="Supprimer le document">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                previewEl.innerHTML = "";
+            }
+        }
+
+        function visualiserTempAcompFile() {
+            if (!tempAcompFile || !tempAcompFile.data) {
+                showModal("Erreur", "Aucun document à consulter.");
+                return;
+            }
+            const ext = (tempAcompFile.name || '').split('.').pop().toLowerCase();
+            let type = '';
+            if (ext === 'pdf') type = 'application/pdf';
+            else if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) type = 'image/' + ext;
+            visualiserFichierData(tempAcompFile.name, tempAcompFile.data, type, () => {
+                const link = document.createElement('a');
+                link.href = tempAcompFile.data;
+                link.download = tempAcompFile.name || "document";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
+
+        function supprimerTempAcompFile() {
+            tempAcompFile = null;
+            const fileInput = document.getElementById('acomp-file');
+            if (fileInput) fileInput.value = '';
+            updateAcompFilePreview();
         }
 
         function handleAcompFileChange(evt) {
             const file = evt.target.files[0];
             if (!file) {
                 tempAcompFile = null;
-                document.getElementById('acomp-file-preview').textContent = "";
+                updateAcompFilePreview();
                 return;
             }
             if (file.size > 1024 * 1024) { // 1MB limit
                 showModal("Fichier trop volumineux", "Pour préserver l'espace de stockage de votre navigateur, veuillez choisir un fichier de moins de 1 Mo.");
                 evt.target.value = "";
                 tempAcompFile = null;
-                document.getElementById('acomp-file-preview').textContent = "";
+                updateAcompFilePreview();
                 return;
             }
             const reader = new FileReader();
@@ -3750,7 +3804,7 @@
                     name: file.name,
                     data: e.target.result // base64 data url
                 };
-                document.getElementById('acomp-file-preview').innerHTML = `📎 Fichier prêt : <b>${escapeHTML(file.name)}</b> (${(file.size / 1024).toFixed(1)} Ko)`;
+                updateAcompFilePreview();
             };
             reader.readAsDataURL(file);
         }
@@ -3765,10 +3819,10 @@
                 document.getElementById('acomp-info').value = "";
                 document.getElementById('acomp-amenagement').value = "";
                 document.getElementById('acomp-file').value = "";
-                document.getElementById('acomp-file-preview').textContent = "";
                 document.getElementById('acomp-details-section').style.display = 'none';
             }
             tempAcompFile = null;
+            updateAcompFilePreview();
 
             document.getElementById('comp-libre').value = "";
             // Reset bouton valider
@@ -3849,10 +3903,8 @@
             if (info.acomp) {
                 document.getElementById('acomp-info').value = info.acompInfo || "";
                 document.getElementById('acomp-amenagement').value = info.acompAmenagement || "";
-                if (info.acompFile) {
-                    tempAcompFile = info.acompFile;
-                    document.getElementById('acomp-file-preview').innerHTML = `📎 Fichier actuel : <b>${escapeHTML(info.acompFile.name)}</b> (Conservé sauf si vous en choisissez un autre)`;
-                }
+                tempAcompFile = info.acompFile || null;
+                updateAcompFilePreview();
             }
 
             document.getElementById('comp-libre').value = info.libre || "";
@@ -3865,6 +3917,50 @@
             document.getElementById('comp-form-container').style.display = 'block';
             // Scroll vers form
             document.getElementById('comp-form-container').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function visualiserAcompFile(idx) {
+            if (typeof indexActuel === 'undefined' || !eleves[indexActuel]) return;
+            const info = eleves[indexActuel].infosComplementaires?.[idx];
+            if (!info || !info.acompFile || !info.acompFile.data) {
+                showModal("Erreur", "Impossible de retrouver le fichier joint.");
+                return;
+            }
+            const ext = (info.acompFile.name || '').split('.').pop().toLowerCase();
+            let type = '';
+            if (ext === 'pdf') type = 'application/pdf';
+            else if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) type = 'image/' + ext;
+            visualiserFichierData(info.acompFile.name, info.acompFile.data, type, () => telechargerAcompFile(idx));
+        }
+
+        function telechargerAcompFile(idx) {
+            if (typeof indexActuel === 'undefined' || !eleves[indexActuel]) return;
+            const info = eleves[indexActuel].infosComplementaires?.[idx];
+            if (!info || !info.acompFile || !info.acompFile.data) {
+                showModal("Erreur", "Données de fichier indisponibles pour le téléchargement.");
+                return;
+            }
+            const link = document.createElement('a');
+            link.href = info.acompFile.data;
+            link.download = info.acompFile.name || "document";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function supprimerAcompFile(idx) {
+            if (typeof indexActuel === 'undefined' || !eleves[indexActuel]) return;
+            const info = eleves[indexActuel].infosComplementaires?.[idx];
+            if (!info || !info.acompFile) return;
+
+            const docName = info.acompFile.name || "ce document";
+            showConfirm("Supprimer le document joint", `Voulez-vous vraiment supprimer définitivement le document joint <b>${escapeHTML(docName)}</b> ?`, () => {
+                delete info.acompFile;
+                sauvegarder();
+                renderCompInfos();
+                refreshIdentityCard(eleves[indexActuel]);
+                showModal("Succès", "Document joint supprimé.");
+            });
         }
 
         function renderCompInfos() {
@@ -3893,7 +3989,25 @@
                         subDetails += `<p style="margin:5px 0; font-size:0.9em; text-align: left;"><strong>Aménagements :</strong> ${escapeHTML(info.acompAmenagement)}</p>`;
                     }
                     if (info.acompFile) {
-                        subDetails += `<p style="margin:5px 0; font-size:0.9em; text-align: left;"><strong>Fichier joint :</strong> <a href="${info.acompFile.data}" download="${escapeHTML(info.acompFile.name)}" style="color:#3498db; font-weight:bold; text-decoration:underline;">📎 ${escapeHTML(info.acompFile.name)}</a></p>`;
+                        subDetails += `
+                            <div style="margin:8px 0; padding:8px 12px; background:rgba(52, 152, 219, 0.07); border:1px solid rgba(52, 152, 219, 0.2); border-radius:8px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px;">
+                                <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1;">
+                                    <span style="font-size:1.1em;">📎</span>
+                                    <span style="font-size:0.9em; font-weight:600; color:var(--primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHTML(info.acompFile.name)}">${escapeHTML(info.acompFile.name)}</span>
+                                </div>
+                                <div style="display:inline-flex; align-items:center; gap:5px; flex-shrink:0;">
+                                    <button type="button" class="btn-tiny btn-blue" onclick="visualiserAcompFile(${idx})" style="padding:5px 10px; font-size:0.82em; display:flex; align-items:center; gap:4px;" title="Consulter le document">
+                                        👁️ Consulter
+                                    </button>
+                                    <button type="button" class="btn-tiny btn-green" onclick="telechargerAcompFile(${idx})" style="padding:5px 9px; font-size:0.82em; display:flex; align-items:center; gap:4px;" title="Télécharger">
+                                        ⬇️
+                                    </button>
+                                    <button type="button" class="btn-tiny btn-red" onclick="supprimerAcompFile(${idx})" style="padding:5px 9px; font-size:0.82em; display:flex; align-items:center; gap:4px;" title="Supprimer le document joint">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        `;
                     }
                 }
 
@@ -4464,11 +4578,16 @@
                             ⚠️ ATTENTION : Seuil critique atteint (4+) ! <br> Mettre une retenue et appeler les parents ! ⚠️
                         </div>
                         
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 15px; border-bottom: 2px solid var(--border); padding-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 15px; border-bottom: 2px solid var(--border); padding-bottom: 8px; flex-wrap: wrap; gap: 10px;">
                             <h4 style="margin: 0; color: var(--danger)">Journal de Bord Disciplinaire</h4>
-                            <button class="btn-green" style="padding: 6px 15px; font-size: 0.9em; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px;" onclick="ouvrirFormulaireJournal('${trim}')">
-                                <span>➕</span> Ajouter un relevé
-                            </button>
+                            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                <button class="btn-green" style="padding: 6px 14px; font-size: 0.9em; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px;" onclick="ouvrirFormulaireJournal('${trim}')">
+                                    <span>➕</span> Ajouter un relevé
+                                </button>
+                                <button class="btn-blue" style="padding: 6px 14px; font-size: 0.9em; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px;" onclick="ouvrirModalAjouterNote('${trim}')">
+                                    <span>📝</span> Ajouter une note
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Récapitulatif Assiduité & Classement -->
@@ -4507,7 +4626,13 @@
                 const allSubjects = getAllSubjects(trim);
 
                 if (allSubjects.length === 0) {
-                    subjectsHtml = '<p style="color:#95a5a6; font-style:italic; text-align:center; grid-column: 1 / -1; padding: 20px;">Aucune matière importée pour ce trimestre (Utilisez "Entrer les résultats" pour importer un CSV).</p>';
+                    subjectsHtml = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 25px; background: rgba(0,0,0,0.02); border: 1px dashed var(--border); border-radius: 12px;">
+                            <p style="color: var(--text-secondary); font-style: italic; margin-bottom: 12px;">Aucune matière enregistrée pour ce trimestre.</p>
+                            <button class="btn-blue" style="padding: 7px 16px; font-size: 0.9em; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px;" onclick="ouvrirModalAjouterNote('${trim}')">
+                                <span>📝</span> Ajouter une note
+                            </button>
+                        </div>`;
                 } else {
                     allSubjects.forEach(m => {
                         const rawVal = res.notes[m];
@@ -4516,11 +4641,20 @@
                         const icon = getIcon(m);
                         const evo = getEvolution(m, noteVal);
 
+                        let evalsSubtext = "";
+                        if (res.evaluations && res.evaluations[m] && res.evaluations[m].length > 0) {
+                            const evalsList = res.evaluations[m].map(ev => `${ev.noteObtenue}/${ev.bareme}`).join(', ');
+                            evalsSubtext = `<div style="font-size:0.75em; color:var(--text-secondary); margin-top:2px;" title="Notes saisies : ${escapeHTML(evalsList)}">📝 ${escapeHTML(evalsList)}</div>`;
+                        }
+
                         subjectsHtml += `
-                         <div class="subject-card">
+                         <div class="subject-card" style="cursor:pointer;" onclick="ouvrirModalAjouterNote('${trim}', '${escapeHTML(m.replace(/'/g, "\\'"))}')" title="Cliquez pour ajouter ou modifier une note en ${escapeHTML(m)}">
                              <div style="display:flex; align-items:center;">
                                  <span class="subject-icon">${icon}</span>
-                                 <span class="subject-name">${escapeHTML(m)}</span>
+                                 <div>
+                                     <span class="subject-name">${escapeHTML(m)}</span>
+                                     ${evalsSubtext}
+                                 </div>
                              </div>
                              <div style="display:flex; align-items:center;">
                                  <span class="subject-grade ${cls}">${noteVal ? escapeHTML(noteVal) : ''}</span>
@@ -4530,7 +4664,12 @@
                     });
                 }
 
-                html += `<h4 style="margin-top:20px;">Moyennes par matières</h4>
+                html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+                            <h4 style="margin: 0;">Moyennes par matières</h4>
+                            <button class="btn-blue" style="padding: 5px 12px; font-size: 0.85em; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px;" onclick="ouvrirModalAjouterNote('${trim}')">
+                                <span>📝</span> Ajouter une note
+                            </button>
+                         </div>
                          <div class="subjects-grid">${subjectsHtml}</div>`;
 
                 html += `
@@ -5475,6 +5614,443 @@
                 </html>
             `);
             printWindow.document.close();
+        }
+
+        // --- GESTION DE L'AJOUT MANUEL DE NOTES ---
+
+        function recalculerMoyenneGeneraleEleve(eleve, trim) {
+            if (!eleve || !eleve.resultats || !eleve.resultats[trim]) return;
+            const notesObj = eleve.resultats[trim].notes || {};
+            const validNotes = Object.values(notesObj)
+                .map(v => parseFloat(String(v).replace(',', '.')))
+                .filter(v => !isNaN(v));
+            if (validNotes.length > 0) {
+                const sum = validNotes.reduce((a, b) => a + b, 0);
+                const avg = (sum / validNotes.length).toFixed(2);
+                eleve.resultats[trim].moyenneG = String(avg);
+            }
+        }
+
+        function actualiserCalculNoteSur20() {
+            const isAbs = document.getElementById('note-absent')?.checked;
+            const previewContainer = document.getElementById('note-preview-valeur');
+            if (!previewContainer) return;
+
+            if (isAbs) {
+                previewContainer.innerHTML = `<span class="tag" style="background:#e0e0e0; color:#555; font-size:0.95em;">Abs (Absent)</span>`;
+                return;
+            }
+
+            const noteInput = document.getElementById('note-obtenue');
+            const baremeInput = document.getElementById('note-bareme');
+            if (!noteInput || !baremeInput) return;
+
+            const rawVal = noteInput.value.trim().replace(',', '.');
+            if (rawVal === '') {
+                previewContainer.innerHTML = `<span style="color:var(--text-secondary); font-size:0.95em;">- / 20</span>`;
+                return;
+            }
+
+            const val = parseFloat(rawVal);
+            const bareme = parseInt(baremeInput.value) || 20;
+
+            if (isNaN(val) || val < 0) {
+                previewContainer.innerHTML = `<span style="color:var(--danger); font-size:0.85em;">Note invalide</span>`;
+                return;
+            }
+
+            const noteSur20 = Math.round(((val / bareme) * 20) * 100) / 100;
+            let badgeColor = "#27ae60"; // green
+            if (noteSur20 < 8) badgeColor = "#e74c3c"; // red
+            else if (noteSur20 < 12) badgeColor = "#f39c12"; // orange
+            else if (noteSur20 < 15) badgeColor = "#27ae60"; // green
+            else badgeColor = "#2980b9"; // blue
+
+            previewContainer.innerHTML = `
+                <span style="display:inline-flex; align-items:center; gap:8px;">
+                    <b style="font-size:1.25em; color:${badgeColor};">${noteSur20}</b>
+                    <span style="font-size:0.9em; color:var(--text-secondary);">/ 20</span>
+                    <span style="font-size:0.8em; color:var(--text-secondary); font-style:italic;">(${val}/${bareme})</span>
+                </span>
+            `;
+        }
+
+        function toggleNoteAbsent() {
+            const isAbs = document.getElementById('note-absent')?.checked;
+            const noteInput = document.getElementById('note-obtenue');
+            const baremeInput = document.getElementById('note-bareme');
+            if (noteInput) {
+                noteInput.disabled = isAbs;
+                if (isAbs) noteInput.value = '';
+            }
+            if (baremeInput) baremeInput.disabled = isAbs;
+            actualiserCalculNoteSur20();
+        }
+
+        function onMatiereNoteChange(trim) {
+            const sel = document.getElementById('modal-note-matiere');
+            const customInput = document.getElementById('modal-note-matiere-custom');
+            const existingInfo = document.getElementById('modal-note-existing-info');
+            if (!sel) return;
+
+            if (sel.value === '__NEW__') {
+                if (customInput) customInput.style.display = 'block';
+            } else {
+                if (customInput) customInput.style.display = 'none';
+            }
+
+            const matiere = sel.value === '__NEW__' ? (customInput ? customInput.value.trim() : '') : sel.value;
+            const eleve = (typeof indexActuel !== 'undefined' && eleves[indexActuel]) ? eleves[indexActuel] : null;
+            const res = eleve && eleve.resultats ? eleve.resultats[trim] : null;
+
+            if (existingInfo) {
+                if (matiere && res && res.notes && res.notes[matiere] !== undefined && res.notes[matiere] !== '') {
+                    const currentNote = res.notes[matiere];
+                    const evals = (res.evaluations && res.evaluations[matiere]) ? res.evaluations[matiere] : [];
+                    let evalsHtml = '';
+                    if (evals.length > 0) {
+                        evalsHtml = `
+                            <div style="margin-top:8px; font-size:0.85em; max-height:90px; overflow-y:auto; border-top:1px dashed #ffe082; padding-top:6px;">
+                                <span style="font-weight:bold; color:var(--text-secondary);">Évaluations enregistrées (${evals.length}) :</span>
+                                <ul style="margin:4px 0 0 16px; padding:0;">
+                                    ${evals.map((ev) => `
+                                        <li style="margin-bottom:3px;">
+                                            ${ev.titre ? `<b>${escapeHTML(ev.titre)} : </b>` : ''}
+                                            ${ev.noteObtenue}/${ev.bareme} (soit ${ev.noteSur20}/20) ${ev.date ? `<span style="color:var(--text-secondary); font-size:0.9em;">le ${ev.date}</span>` : ''}
+                                            <button type="button" class="btn-tiny btn-red" onclick="supprimerEvaluation('${trim}', '${escapeHTML(matiere.replace(/'/g, "\\'"))}', '${ev.id}')" style="padding:1px 5px; font-size:0.7em; margin-left:6px;" title="Supprimer cette évaluation">🗑️</button>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                    existingInfo.innerHTML = `
+                        <div style="padding:10px 14px; background:#fff8e1; border:1px solid #ffe082; border-radius:8px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:0.92em; color:#d78200; font-weight:bold;">
+                                    📌 Note actuelle en ${escapeHTML(matiere)} : <b>${escapeHTML(String(currentNote))}</b> / 20
+                                </span>
+                                <button type="button" class="btn-tiny btn-red" onclick="supprimerNoteMatiere('${trim}', '${escapeHTML(matiere.replace(/'/g, "\\'"))}')" style="padding:3px 8px; font-size:0.78em;" title="Supprimer la note">
+                                    🗑️ Supprimer
+                                </button>
+                            </div>
+                            ${evalsHtml}
+                            <div style="margin-top:10px; font-size:0.88em; display:flex; gap:15px; flex-wrap:wrap;">
+                                <label style="cursor:pointer; display:inline-flex; align-items:center; gap:5px; font-weight:600; color:var(--text);">
+                                    <input type="radio" name="modal-note-mode" value="moyenne" checked>
+                                    Faire la moyenne avec la note actuelle
+                                </label>
+                                <label style="cursor:pointer; display:inline-flex; align-items:center; gap:5px; color:var(--text);">
+                                    <input type="radio" name="modal-note-mode" value="remplacer">
+                                    Remplacer la note actuelle
+                                </label>
+                            </div>
+                        </div>
+                    `;
+                    existingInfo.style.display = 'block';
+                } else {
+                    existingInfo.innerHTML = '';
+                    existingInfo.style.display = 'none';
+                }
+            }
+        }
+
+        function ouvrirModalAjouterNote(trim, preselectedSubject = '') {
+            if (typeof indexActuel === 'undefined' || !eleves[indexActuel]) {
+                showModal("Erreur", "Aucun élève sélectionné.");
+                return;
+            }
+            const eleve = eleves[indexActuel];
+            const res = eleve.resultats ? eleve.resultats[trim] : null;
+
+            const subjects = getDropdownSubjectsList(trim);
+            const subjectsOptions = subjects.map(s => {
+                const cur = (res && res.notes && res.notes[s] !== undefined && res.notes[s] !== '') ? ` (${res.notes[s]}/20)` : '';
+                return `<option value="${escapeHTML(s)}">${escapeHTML(s)}${cur}</option>`;
+            }).join('');
+
+            let baremeOptions = '';
+            for (let b = 1; b <= 20; b++) {
+                baremeOptions += `<option value="${b}" ${b === 20 ? 'selected' : ''}>/ ${b}</option>`;
+            }
+
+            const modalHtml = `
+                <div style="text-align: left; max-height: 75vh; overflow-y: auto; padding-right: 5px; color: var(--text);">
+                    <!-- Matière -->
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="font-weight: bold; font-size: 0.9em; color: var(--primary);">Matière <span style="color:var(--danger)">*</span></label>
+                        <select id="modal-note-matiere" onchange="onMatiereNoteChange('${trim}')" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.95em;">
+                            <option value="">-- Sélectionner une matière --</option>
+                            ${subjectsOptions}
+                            <option value="__NEW__">➕ Autre matière (saisie manuelle)...</option>
+                        </select>
+                        <input type="text" id="modal-note-matiere-custom" placeholder="Nom de la nouvelle matière..." oninput="onMatiereNoteChange('${trim}')" style="display: none; width: 100%; margin-top: 8px; padding: 8px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.95em;">
+                    </div>
+
+                    <!-- Existing Note Info Box (if any) -->
+                    <div id="modal-note-existing-info" style="display: none; margin-bottom: 15px;"></div>
+
+                    <!-- Saisie Note et Barème -->
+                    <div style="background: rgba(52, 152, 219, 0.04); border: 1px solid rgba(52, 152, 219, 0.2); border-radius: 10px; padding: 15px; margin-bottom: 15px;">
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px; align-items: flex-end;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-weight: bold; font-size: 0.9em;">Note obtenue <span style="color:var(--danger)">*</span></label>
+                                <input type="number" id="note-obtenue" step="0.25" min="0" placeholder="Ex: 14.5" oninput="actualiserCalculNoteSur20()" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); font-size: 1.05em; font-weight: bold;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-weight: bold; font-size: 0.9em;">Sur combien</label>
+                                <select id="note-bareme" onchange="actualiserCalculNoteSur20()" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); font-size: 1.05em; font-weight: bold;">
+                                    ${baremeOptions}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between;">
+                            <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.85em; cursor: pointer; color: var(--text);">
+                                <input type="checkbox" id="note-absent" onchange="toggleNoteAbsent()" style="width: auto; transform: scale(1.15);">
+                                Élève absent / non noté (Abs)
+                            </label>
+                        </div>
+
+                        <!-- Aperçu dynamique ramené sur 20 -->
+                        <div style="margin-top: 12px; padding: 10px 14px; background: white; border: 1px solid var(--border); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                            <span style="font-size: 0.88em; font-weight: bold; color: var(--primary);">Note équivalente sur 20 :</span>
+                            <div id="note-preview-valeur">
+                                <span style="color: var(--text-secondary); font-size: 0.95em;">- / 20</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Détails facultatifs -->
+                    <div style="display: grid; grid-template-columns: 2fr 1.5fr; gap: 12px; margin-bottom: 15px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.85em; font-weight: bold; color: var(--text-secondary);">Intitulé / Devoir (optionnel)</label>
+                            <input type="text" id="note-titre" placeholder="Ex: Devoir bilan, DM 2..." style="width: 100%; padding: 7px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.88em;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.85em; font-weight: bold; color: var(--text-secondary);">Date de l'évaluation</label>
+                            <input type="date" id="note-date" value="${new Date().toISOString().split('T')[0]}" style="width: 100%; padding: 7px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.88em;">
+                        </div>
+                    </div>
+
+                    <!-- Option recalcul moyenne générale -->
+                    <div style="background: rgba(46, 204, 113, 0.08); border: 1px solid rgba(46, 204, 113, 0.25); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="note-recalc-moy" checked style="width: auto; transform: scale(1.15);">
+                        <label for="note-recalc-moy" style="margin: 0; font-size: 0.85em; font-weight: 600; cursor: pointer; color: var(--text);">
+                            Actualiser la moyenne générale de l'élève
+                        </label>
+                    </div>
+                </div>
+            `;
+
+            showModal(
+                `📝 Ajouter une note (${trim}) - ${escapeHTML(eleve.prenom)} ${escapeHTML(eleve.nom)}`,
+                modalHtml,
+                [
+                    { text: "Annuler", cls: "btn-blue" },
+                    {
+                        text: "Enregistrer la note",
+                        cls: "btn-green",
+                        onclick: () => enregistrerNouvelleNote(trim)
+                    }
+                ]
+            );
+
+            setTimeout(() => {
+                if (preselectedSubject) {
+                    const sel = document.getElementById('modal-note-matiere');
+                    if (sel) {
+                        let found = false;
+                        for (let i = 0; i < sel.options.length; i++) {
+                            if (sel.options[i].value === preselectedSubject) {
+                                sel.selectedIndex = i;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            sel.value = '__NEW__';
+                            const customInput = document.getElementById('modal-note-matiere-custom');
+                            if (customInput) {
+                                customInput.style.display = 'block';
+                                customInput.value = preselectedSubject;
+                            }
+                        }
+                        onMatiereNoteChange(trim);
+                    }
+                }
+            }, 60);
+        }
+
+        function enregistrerNouvelleNote(trim) {
+            if (typeof indexActuel === 'undefined' || !eleves[indexActuel]) {
+                alert("Aucun élève sélectionné.");
+                return false;
+            }
+            const eleve = eleves[indexActuel];
+
+            const selMat = document.getElementById('modal-note-matiere');
+            const customMatInput = document.getElementById('modal-note-matiere-custom');
+            let matiere = selMat ? selMat.value : '';
+            if (matiere === '__NEW__') {
+                matiere = customMatInput ? customMatInput.value.trim() : '';
+            }
+            if (!matiere) {
+                alert("Veuillez sélectionner ou saisir une matière.");
+                return false;
+            }
+
+            const isAbs = document.getElementById('note-absent')?.checked;
+            const noteInput = document.getElementById('note-obtenue');
+            const baremeInput = document.getElementById('note-bareme');
+            const titre = (document.getElementById('note-titre')?.value || '').trim();
+            const dateEval = document.getElementById('note-date')?.value || new Date().toISOString().split('T')[0];
+            const recalcMoy = document.getElementById('note-recalc-moy')?.checked;
+
+            let finalNoteStr = "";
+            let evalObj = null;
+
+            if (isAbs) {
+                finalNoteStr = "Abs";
+                evalObj = {
+                    id: 'eval_' + Date.now(),
+                    date: dateEval,
+                    titre: titre,
+                    noteObtenue: "Abs",
+                    bareme: 20,
+                    noteSur20: "Abs"
+                };
+            } else {
+                const rawVal = noteInput ? noteInput.value.trim().replace(',', '.') : '';
+                if (rawVal === '') {
+                    alert("Veuillez renseigner la note obtenue ou cocher 'Élève absent'.");
+                    return false;
+                }
+                const val = parseFloat(rawVal);
+                const bareme = parseInt(baremeInput ? baremeInput.value : '20') || 20;
+
+                if (isNaN(val) || val < 0) {
+                    alert("Veuillez entrer une note numérique valide supérieure ou égale à 0.");
+                    return false;
+                }
+
+                const noteSur20 = Math.round(((val / bareme) * 20) * 100) / 100;
+
+                evalObj = {
+                    id: 'eval_' + Date.now(),
+                    date: dateEval,
+                    titre: titre,
+                    noteObtenue: val,
+                    bareme: bareme,
+                    noteSur20: noteSur20
+                };
+
+                const modeRadio = document.querySelector('input[name="modal-note-mode"]:checked');
+                const mode = modeRadio ? modeRadio.value : 'remplacer';
+
+                if (mode === 'moyenne' && eleve.resultats && eleve.resultats[trim] && eleve.resultats[trim].notes && eleve.resultats[trim].notes[matiere]) {
+                    const oldRaw = String(eleve.resultats[trim].notes[matiere]).replace(',', '.');
+                    const oldVal = parseFloat(oldRaw);
+                    if (!isNaN(oldVal)) {
+                        const prevEvals = (eleve.resultats[trim].evaluations && eleve.resultats[trim].evaluations[matiere]) || [];
+                        const validPrevEvals = prevEvals.filter(e => typeof e.noteSur20 === 'number' && !isNaN(e.noteSur20));
+                        if (validPrevEvals.length > 0) {
+                            const sum = validPrevEvals.reduce((acc, ev) => acc + ev.noteSur20, 0) + noteSur20;
+                            const avg = Math.round((sum / (validPrevEvals.length + 1)) * 100) / 100;
+                            finalNoteStr = String(avg);
+                        } else {
+                            const avg = Math.round(((oldVal + noteSur20) / 2) * 100) / 100;
+                            finalNoteStr = String(avg);
+                        }
+                    } else {
+                        finalNoteStr = String(noteSur20);
+                    }
+                } else {
+                    finalNoteStr = String(noteSur20);
+                }
+            }
+
+            if (!eleve.resultats) eleve.resultats = {};
+            if (!eleve.resultats[trim]) {
+                eleve.resultats[trim] = { moyenneG: "", rang: "", abs: 0, retards: 0, notes: {}, punitions: {}, historique: [] };
+            }
+            if (!eleve.resultats[trim].notes) {
+                eleve.resultats[trim].notes = {};
+            }
+            if (!eleve.resultats[trim].evaluations) {
+                eleve.resultats[trim].evaluations = {};
+            }
+            if (!eleve.resultats[trim].evaluations[matiere]) {
+                eleve.resultats[trim].evaluations[matiere] = [];
+            }
+
+            eleve.resultats[trim].notes[matiere] = finalNoteStr;
+            if (evalObj) {
+                eleve.resultats[trim].evaluations[matiere].push(evalObj);
+            }
+
+            if (recalcMoy) {
+                recalculerMoyenneGeneraleEleve(eleve, trim);
+            }
+
+            sauvegarder();
+            genererHtmlTrimestre(trim);
+            if (typeof renderChart === 'function') renderChart(trim);
+
+            showModal("Succès", `La note pour <b>${escapeHTML(matiere)}</b> a été enregistrée avec succès (${finalNoteStr} / 20) pour <b>${escapeHTML(eleve.prenom)} ${escapeHTML(eleve.nom)}</b>.`);
+            return true;
+        }
+
+        function supprimerEvaluation(trim, matiere, evalId) {
+            if (typeof indexActuel === 'undefined' || !eleves[indexActuel]) return;
+            const eleve = eleves[indexActuel];
+            if (!eleve.resultats || !eleve.resultats[trim] || !eleve.resultats[trim].evaluations) return;
+
+            const list = eleve.resultats[trim].evaluations[matiere];
+            if (!list) return;
+
+            eleve.resultats[trim].evaluations[matiere] = list.filter(e => e.id !== evalId);
+
+            const remaining = eleve.resultats[trim].evaluations[matiere].filter(e => typeof e.noteSur20 === 'number' && !isNaN(e.noteSur20));
+            if (remaining.length > 0) {
+                const sum = remaining.reduce((acc, ev) => acc + ev.noteSur20, 0);
+                const avg = Math.round((sum / remaining.length) * 100) / 100;
+                eleve.resultats[trim].notes[matiere] = String(avg);
+            } else if (eleve.resultats[trim].evaluations[matiere].length > 0) {
+                eleve.resultats[trim].notes[matiere] = "Abs";
+            } else {
+                delete eleve.resultats[trim].notes[matiere];
+            }
+
+            recalculerMoyenneGeneraleEleve(eleve, trim);
+            sauvegarder();
+            genererHtmlTrimestre(trim);
+            if (typeof renderChart === 'function') renderChart(trim);
+            onMatiereNoteChange(trim);
+        }
+
+        function supprimerNoteMatiere(trim, matiere) {
+            if (typeof indexActuel === 'undefined' || !eleves[indexActuel]) return;
+            const eleve = eleves[indexActuel];
+            showConfirm(
+                "Supprimer la note",
+                `Voulez-vous vraiment supprimer la note de <b>${escapeHTML(matiere)}</b> pour ${escapeHTML(eleve.prenom)} ?`,
+                () => {
+                    if (eleve.resultats && eleve.resultats[trim]) {
+                        if (eleve.resultats[trim].notes) {
+                            delete eleve.resultats[trim].notes[matiere];
+                        }
+                        if (eleve.resultats[trim].evaluations) {
+                            delete eleve.resultats[trim].evaluations[matiere];
+                        }
+                        recalculerMoyenneGeneraleEleve(eleve, trim);
+                        sauvegarder();
+                        genererHtmlTrimestre(trim);
+                        if (typeof renderChart === 'function') renderChart(trim);
+                        closeModal();
+                    }
+                }
+            );
         }
 
         // --- GESTION JOURNAL DISCIPLINAIRE ---
@@ -8851,6 +9427,76 @@
             });
         }
 
+        function visualiserFichierData(fileName, fileData, fileType = '', onDownload = null) {
+            if (!fileData || fileData.trim() === '') {
+                showModal("Information", `Le document <b>${escapeHTML(fileName)}</b> n'a pas de données de fichier exploitables.`);
+                return;
+            }
+
+            const modal = document.getElementById('modal-preview-doc');
+            const titleEl = document.getElementById('modal-preview-doc-title');
+            const iconEl = document.getElementById('modal-preview-doc-icon');
+            const bodyEl = document.getElementById('modal-preview-doc-body');
+            const dlBtn = document.getElementById('modal-preview-doc-dl');
+
+            if (!modal || !bodyEl) return;
+
+            const docMeta = typeof getDocTypeIcon === 'function' ? getDocTypeIcon(fileType, fileName) : { icon: '📄', color: '#7f8c8d' };
+            if (iconEl) iconEl.textContent = docMeta.icon;
+            if (titleEl) titleEl.textContent = fileName;
+
+            const handleDownload = () => {
+                if (typeof onDownload === 'function') {
+                    onDownload();
+                } else {
+                    const link = document.createElement('a');
+                    link.href = fileData;
+                    link.download = fileName || "document";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            };
+
+            if (dlBtn) {
+                dlBtn.onclick = handleDownload;
+            }
+
+            bodyEl.innerHTML = '';
+            const ext = (fileName || '').split('.').pop().toLowerCase();
+            const typeStr = (fileType || '').toLowerCase();
+
+            if (typeStr.includes('pdf') || ext === 'pdf') {
+                bodyEl.innerHTML = `<iframe src="${fileData}" style="width:100%; height:100%; border:none; border-radius:8px; background:white;"></iframe>`;
+            } else if (typeStr.includes('image') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
+                bodyEl.innerHTML = `<img src="${fileData}" alt="${escapeHTML(fileName)}" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);" />`;
+            } else if (typeStr.includes('text') || ['txt', 'csv', 'json', 'md', 'log'].includes(ext)) {
+                try {
+                    const textContent = atob(fileData.split(',')[1]);
+                    bodyEl.innerHTML = `<pre style="width:100%; height:100%; box-sizing:border-box; white-space:pre-wrap; background:white; padding:20px; border-radius:8px; overflow:auto; margin:0; font-family:monospace; font-size:0.9em; color:#333;">${escapeHTML(textContent)}</pre>`;
+                } catch (e) {
+                    bodyEl.innerHTML = `<iframe src="${fileData}" style="width:100%; height:100%; border:none; border-radius:8px; background:white;"></iframe>`;
+                }
+            } else {
+                bodyEl.innerHTML = `
+                    <div style="text-align:center; background:white; padding:40px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1); max-width:450px;">
+                        <span style="font-size:3.5em; display:block; margin-bottom:15px;">${docMeta.icon}</span>
+                        <h4 style="margin:0 0 10px; color:var(--primary); font-size:1.1em;">${escapeHTML(fileName)}</h4>
+                        <p style="margin:0 0 20px; font-size:0.9em; color:var(--text-secondary);">L'aperçu direct dans le navigateur n'est pas disponible pour ce type de fichier (${ext.toUpperCase()}).</p>
+                        <button class="btn-green" id="modal-preview-doc-fallback-dl" style="padding:10px 20px; font-weight:bold; font-size:0.95em;">
+                            ⬇️ Télécharger le fichier
+                        </button>
+                    </div>
+                `;
+                const fallbackBtn = document.getElementById('modal-preview-doc-fallback-dl');
+                if (fallbackBtn) {
+                    fallbackBtn.onclick = handleDownload;
+                }
+            }
+
+            modal.style.display = 'flex';
+        }
+
         async function visualiserDocument(docId) {
             const doc = await recupererDocumentParIdDB(docId);
             if (!doc) {
@@ -8863,50 +9509,7 @@
                 return;
             }
 
-            const modal = document.getElementById('modal-preview-doc');
-            const titleEl = document.getElementById('modal-preview-doc-title');
-            const iconEl = document.getElementById('modal-preview-doc-icon');
-            const bodyEl = document.getElementById('modal-preview-doc-body');
-            const dlBtn = document.getElementById('modal-preview-doc-dl');
-
-            if (!modal || !bodyEl) return;
-
-            const docMeta = getDocTypeIcon(doc.type, doc.name);
-            if (iconEl) iconEl.textContent = docMeta.icon;
-            if (titleEl) titleEl.textContent = doc.name;
-
-            if (dlBtn) {
-                dlBtn.onclick = () => telechargerDocument(docId);
-            }
-
-            bodyEl.innerHTML = '';
-            const ext = doc.name.split('.').pop().toLowerCase();
-
-            if (doc.type.includes('pdf') || ext === 'pdf') {
-                bodyEl.innerHTML = `<iframe src="${doc.data}" style="width:100%; height:100%; border:none; border-radius:8px; background:white;"></iframe>`;
-            } else if (doc.type.includes('image') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
-                bodyEl.innerHTML = `<img src="${doc.data}" alt="${escapeHTML(doc.name)}" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);" />`;
-            } else if (doc.type.includes('text') || ['txt', 'csv', 'json', 'md', 'log'].includes(ext)) {
-                try {
-                    const textContent = atob(doc.data.split(',')[1]);
-                    bodyEl.innerHTML = `<pre style="width:100%; height:100%; box-sizing:border-box; white-space:pre-wrap; background:white; padding:20px; border-radius:8px; overflow:auto; margin:0; font-family:monospace; font-size:0.9em; color:#333;">${escapeHTML(textContent)}</pre>`;
-                } catch (e) {
-                    bodyEl.innerHTML = `<iframe src="${doc.data}" style="width:100%; height:100%; border:none; border-radius:8px; background:white;"></iframe>`;
-                }
-            } else {
-                bodyEl.innerHTML = `
-                    <div style="text-align:center; background:white; padding:40px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1); max-width:450px;">
-                        <span style="font-size:3.5em; display:block; margin-bottom:15px;">${docMeta.icon}</span>
-                        <h4 style="margin:0 0 10px; color:var(--primary); font-size:1.1em;">${escapeHTML(doc.name)}</h4>
-                        <p style="margin:0 0 20px; font-size:0.9em; color:var(--text-secondary);">L'aperçu direct dans le navigateur n'est pas disponible pour ce type de fichier (${ext.toUpperCase()}).</p>
-                        <button class="btn-green" onclick="telechargerDocument('${doc.id}')" style="padding:10px 20px; font-weight:bold; font-size:0.95em;">
-                            ⬇️ Télécharger le fichier
-                        </button>
-                    </div>
-                `;
-            }
-
-            modal.style.display = 'flex';
+            visualiserFichierData(doc.name, doc.data, doc.type, () => telechargerDocument(docId));
         }
 
         function fermerModalPreviewDoc() {
