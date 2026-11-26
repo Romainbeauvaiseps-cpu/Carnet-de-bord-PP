@@ -1027,28 +1027,285 @@
         }
 
 
-        /* Eco-responsive adjustments */
-        @media (max-width: 768px) {
+        /* Eco-responsive adjustments (Tablettes & Mobiles) */
+        @media (max-width: 1180px) {
             body {
-                padding: 10px;
-                font-size: 16px;
+                padding: 12px;
+                font-size: 15px;
             }
 
             .section {
                 padding: 20px;
+                max-width: 100%;
+                border-radius: 16px;
             }
 
             h1 {
-                font-size: 1.5em;
+                font-size: 1.7em;
+                margin-bottom: 24px;
+            }
+
+            h2 {
+                font-size: 1.3em;
+                margin-bottom: 16px;
+            }
+
+            .nav-bar {
+                gap: 10px;
+                margin-bottom: 24px;
             }
 
             button {
-                width: 100%;
+                padding: 10px 18px;
+                font-size: 0.88rem;
+            }
+
+            .btn-home {
+                width: 165px;
+                height: 165px;
+                font-size: 1.1em;
+                border-radius: 24px;
+            }
+
+            .home-btn-container {
+                gap: 18px;
+                margin-top: 60px;
+            }
+
+            .profile-layout {
+                grid-template-columns: 230px 1fr;
+                gap: 16px;
+            }
+
+            #profile-card-left {
+                padding: 16px;
+                font-size: 0.9em;
+            }
+
+            #profile-avatar {
+                width: 70px;
+                height: 70px;
+                font-size: 1.7rem;
                 margin-bottom: 10px;
+            }
+
+            .tabs {
+                gap: 6px;
+                margin: 12px 0;
+            }
+
+            .tab {
+                padding: 7px 12px !important;
+                font-size: 0.84em !important;
+            }
+
+            .tab-content {
+                padding: 16px;
+                border-radius: 16px;
+            }
+
+            table th,
+            table td {
+                padding: 9px 10px;
+            }
+
+            .ia-assistant-card {
+                padding: 14px;
+                margin-bottom: 14px;
+            }
+
+            .ia-step-header {
+                margin-bottom: 10px;
+                padding-bottom: 8px;
+                gap: 8px;
+            }
+
+            .ia-synth-grid {
+                grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+                gap: 10px;
+            }
+
+            .ia-synth-box {
+                padding: 11px;
+                font-size: 0.84em;
+            }
+
+            .modal-box {
+                padding: 28px;
+                border-radius: 24px;
+            }
+
+            .modal-title {
+                font-size: 1.5em;
+                margin-bottom: 16px;
+            }
+
+            .modal-msg {
+                font-size: 1.05em;
+                margin-bottom: 24px;
+            }
+
+            .modal-actions button {
+                padding: 11px 24px;
+                font-size: 0.96em;
+                min-width: 120px;
+            }
+
+            /* Bulletin & Code Couleur Stabilo sur tablette */
+            .hl-toolbar {
+                padding: 8px 10px;
+                gap: 5px;
+            }
+
+            .hl-pen-btn {
+                padding: 4px 8px;
+                font-size: 0.73em;
+                gap: 4px;
+                border-radius: 16px;
+            }
+
+            .hl-segment {
+                padding: 1px 4px;
+                line-height: 1.5;
+                border-radius: 4px;
+            }
+
+            .bulletin-extrait-header {
+                padding: 8px 10px !important;
+                gap: 8px !important;
+            }
+
+            .bulletin-extrait-actions button {
+                padding: 4px 9px !important;
+                font-size: 0.75em !important;
+            }
+
+            .bulletin-extrait-table th,
+            .bulletin-extrait-table td {
+                padding: 6px 6px !important;
+                font-size: 0.85em;
+            }
+
+            .bulletin-extrait-table .col-matiere {
+                width: 125px !important;
+                min-width: 110px;
+            }
+
+            .bulletin-extrait-table .col-pos {
+                width: 36px !important;
+            }
+
+            .bulletin-extrait-table .col-eleve,
+            .bulletin-extrait-table .col-classe {
+                width: 48px !important;
+            }
+
+            .bulletin-extrait-table .hl-zone-text {
+                font-size: 0.92em !important;
+                line-height: 1.5 !important;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .profile-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .desktop-only {
+                display: none !important;
+            }
+
+            #profile-card-left {
+                padding: 14px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 8px;
+                font-size: 14.5px;
+            }
+
+            .section {
+                padding: 14px;
+            }
+
+            h1 {
+                font-size: 1.45em;
+            }
+
+            .tab-content {
+                padding: 12px;
+            }
+
+            /* Bulletin code couleur en mode carte lisible sur tablette portrait / mobile */
+            .bulletin-extrait-table thead {
+                display: none;
+            }
+
+            .bulletin-extrait-table,
+            .bulletin-extrait-table tbody {
+                display: block;
+                width: 100%;
+            }
+
+            .bulletin-extrait-table tr {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                padding: 8px 10px;
+                gap: 4px 10px;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .bulletin-extrait-table td {
+                border-bottom: none !important;
+                padding: 2px 0 !important;
+            }
+
+            .bulletin-extrait-table .col-matiere {
+                width: auto !important;
+                flex: 1 1 160px;
+                text-align: left !important;
+            }
+
+            .bulletin-extrait-table .col-pos,
+            .bulletin-extrait-table .col-eleve,
+            .bulletin-extrait-table .col-classe {
+                width: auto !important;
+                flex: 0 0 auto;
+                font-size: 0.88em !important;
+            }
+
+            .bulletin-extrait-table .col-eleve::before {
+                content: "Élève : ";
+                font-weight: 600;
+                color: var(--text-secondary);
+            }
+
+            .bulletin-extrait-table .col-classe::before {
+                content: "Clas. : ";
+                font-weight: 600;
+                color: var(--text-secondary);
+            }
+
+            .bulletin-extrait-table .col-appr {
+                width: 100% !important;
+                flex: 1 1 100%;
+                margin-top: 4px;
+                padding-top: 6px !important;
+                border-top: 1px dashed var(--border) !important;
             }
 
             .modal-actions {
                 flex-direction: column;
+            }
+        }
+
+        @media (max-width: 540px) {
+            button:not(.hl-pen-btn):not(.hl-float-btn):not(.btn-tiny):not(.btn-wish-action):not(.btn-home) {
+                width: 100%;
+                margin-bottom: 8px;
             }
         }
 
@@ -1922,7 +2179,8 @@
 
                 <button class="btn-home"
                     style="width:auto; height:auto; padding: 12px 25px; font-size:0.95rem; display:inline-flex; align-items: center; gap: 8px; background-color: #e8f5e9; color: #1b5e20; border: 1.5px solid rgba(46, 125, 50, 0.35); font-weight: bold; border-radius: 10px; box-shadow: 0 2px 8px rgba(46, 125, 50, 0.15);"
-                    onclick="telechargerSauvegarde()" title="Sauvegarder toutes les données dans un fichier .json">💾 Sauvegarder</button>
+                    onclick="telechargerSauvegarde()" title="Sauvegarder toutes les données dans un fichier .json">💾
+                    Sauvegarder</button>
 
                 <button class="btn-home bg-pale-blue"
                     style="width:auto; height:auto; padding: 12px 25px; font-size:0.95rem; display:inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(52, 152, 219, 0.2); font-weight: bold; border-radius: 10px;"
@@ -9643,96 +9901,35 @@
 
             // Affichage du rapport complet d'importation
             if (statusContainer) {
-                if (rapportSucces.length === 0) {
-                    statusContainer.innerHTML = `
-                        <div style="padding:18px; background:#fee2e2; border:1px solid #fca5a5; border-radius:12px; color:#991b1b; text-align:left;">
-                            <strong>⚠️ Aucun élève de la liste actuelle n'a pu être associé aux pages du PDF.</strong><br>
-                            <small>Vérifiez que les élèves sont bien inscrits dans votre liste de classe avec les mêmes noms/prénoms que sur les bulletins Pronote.</small>
-                        </div>
-                    `;
-                } else {
-                    const rowsHtml = rapportSucces.map(r => `
-                        <tr style="border-bottom:1px solid var(--border); font-size:0.88em;">
-                            <td style="padding:10px; font-weight:800; color:var(--primary);">${escapeHTML(r.eleve.nom.toUpperCase())} ${escapeHTML(r.eleve.prenom)}</td>
-                            <td style="padding:10px; text-align:center;">Page(s) ${escapeHTML(r.pages.join(', '))}</td>
-                            <td style="padding:10px; text-align:center; font-weight:700; color:#15803d;">${r.nbMatieres} matières</td>
-                            <td style="padding:10px; text-align:center; font-weight:800;">${escapeHTML(r.moyenne)} / 20</td>
-                            <td style="padding:10px; font-size:0.85em; color:var(--text-secondary);">${escapeHTML(r.confidence)}</td>
-                            <td style="padding:10px; text-align:right;">
-                                <button type="button" class="btn-tiny btn-purple" onclick="showSection('section-liste'); ouvrirFiche(${r.eleve.id}); ouvrirAssistantBilanPourTrimestre('${trim}');" style="padding:6px 12px; border-radius:8px; font-weight:700;">
-                                    📋 Ouvrir le bulletin analysé
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('');
+                const succesHtml = rapportSucces.length > 0
+                    ? `<ul style="margin:8px 0 0 18px; padding:0; font-size:0.88em; line-height:1.5;">
+                        ${rapportSucces.map(r => `
+                            <li>
+                                <b>${escapeHTML(r.eleve.nom || '')} ${escapeHTML(r.eleve.prenom || '')}</b>
+                                — ${r.nbMatieres} matières, Moy. ${escapeHTML(String(r.moyenne || '-'))}
+                                <span style="color:var(--text-secondary); font-size:0.9em;">(p.${escapeHTML((r.pages || []).join(', '))})</span>
+                            </li>
+                        `).join('')}
+                       </ul>`
+                    : `<div style="margin-top:6px; font-size:0.88em; color:var(--text-secondary);">Aucun bulletin reconnu automatiquement.</div>`;
 
-                    const nonRecHtml = pagesNonReconnues.length > 0
-                        ? `<div style="margin-top:10px; font-size:0.82em; color:#b45309;">ℹ️ Page(s) non associée(s) : ${escapeHTML(pagesNonReconnues.join(', '))}</div>`
-                        : '';
+                const nonRecHtml = pagesNonReconnues.length > 0
+                    ? `<div style="margin-top:10px; padding:8px 12px; background:#fef2f2; border-left:4px solid #ef4444; border-radius:6px; font-size:0.85em; color:#991b1b;">
+                        <b>⚠️ Pages / fichiers non reconnus (${pagesNonReconnues.length}) :</b> ${pagesNonReconnues.map(p => escapeHTML(p)).join(', ')}
+                       </div>`
+                    : '';
 
-                    statusContainer.innerHTML = `
-                        <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:14px; overflow:hidden; text-align:left; box-shadow:0 4px 15px rgba(0,0,0,0.04);">
-                            <div style="background:#dcfce7; color:#166534; padding:12px 18px; font-weight:800; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                                <span>✅ ${rapportSucces.length} bulletin(s) d'élève(s) détecté(s), découpé(s) et rattaché(s) pour le ${escapeHTML(trim)} (et PDF enregistré dans 📁 Documents de la classe) !</span>
-                            </div>
-                            <div style="max-height:360px; overflow-y:auto;">
-                                <table style="margin:0; border-radius:0; box-shadow:none;">
-                                    <thead>
-                                        <tr style="font-size:0.8em;">
-                                            <th style="padding:10px;">Élève détecté</th>
-                                            <th style="padding:10px; text-align:center;">Pages PDF</th>
-                                            <th style="padding:10px; text-align:center;">Appréciations extraites</th>
-                                            <th style="padding:10px; text-align:center;">Moyenne</th>
-                                            <th style="padding:10px;">Méthode de détection</th>
-                                            <th style="padding:10px; text-align:right;">Action rapide</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${rowsHtml}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div style="padding:10px 16px;">${nonRecHtml}</div>
+                statusContainer.innerHTML = `
+                    <div style="padding:14px 18px; background:var(--card-bg); border:1px solid var(--border); border-left:5px solid #22c55e; border-radius:12px; text-align:left;">
+                        <div style="font-weight:800; color:#15803d; font-size:0.95em;">
+                            ✅ Importation terminée (${escapeHTML(trim)}) : ${rapportSucces.length} bulletin(s) associé(s)
                         </div>
-                    `;
-                }
+                        ${succesHtml}
+                        ${nonRecHtml}
+                    </div>
+                `;
             }
         }
-
-        /* --- 2ter. MOTEUR DE SURLIGNAGE EN 6 COULEURS (STABILO INTELLIGENT) --- */
-
-        let activeStabiloPen = "cycle"; // 'cycle', 'split', 'free_#hex', ou clé de HIGHLIGHT_CATEGORIES
-        let appreciationEditRowKey = null; // Clé 'trim_idx' si édition texte brute ouverte
-        let stabiloCustomPaletteOpen = false;
-        let stabiloPickerHex = "#fbcfe8";
-        let stabiloPickerLabel = "";
-        let stabiloPickerPolarity = "info";
-
-        const CUSTOM_STABILO_STORAGE_KEY = "pp_custom_stabilo_categories";
-
-        const STABILO_PRESET_SWATCHES = [
-            { hex: "#fbcfe8", name: "Rose pastel" },
-            { hex: "#99f6e4", name: "Turquoise" },
-            { hex: "#a7f3d0", name: "Menthe" },
-            { hex: "#fecdd3", name: "Corail doux" },
-            { hex: "#ddd6fe", name: "Lavande" },
-            { hex: "#fde68a", name: "Ambre" },
-            { hex: "#d9f99d", name: "Citron vert" },
-            { hex: "#c7d2fe", name: "Bleu pervenche" },
-            { hex: "#f5d0fe", name: "Magenta doux" },
-            { hex: "#a5f3fc", name: "Cyan clair" },
-            { hex: "#ffedd5", name: "Pêche" },
-            { hex: "#e2e8f0", name: "Gris ardoise" }
-        ];
-
-        const BUILTIN_HIGHLIGHT_ORDER = [
-            "travail_pos",
-            "comportement_pos",
-            "travail_neg",
-            "comportement_neg",
-            "difficultes",
-            "conseils"
-        ];
 
         const HIGHLIGHT_CATEGORIES = {
             travail_pos: {
@@ -9744,7 +9941,7 @@
                 bgHex: "#bbf7d0",
                 textHex: "#14532d",
                 borderHex: "#22c55e",
-                pdfRgb: [0.52, 0.94, 0.67]
+                pdfRgb: [0.73, 0.97, 0.82]
             },
             comportement_pos: {
                 id: "comportement_pos",
@@ -9755,7 +9952,7 @@
                 bgHex: "#bae6fd",
                 textHex: "#0c4a6e",
                 borderHex: "#0284c7",
-                pdfRgb: [0.58, 0.85, 0.98]
+                pdfRgb: [0.73, 0.90, 0.99]
             },
             travail_neg: {
                 id: "travail_neg",
@@ -10854,7 +11051,7 @@
 
                     apprCellHtml = `
                         <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-                            <div id="hl-zone-${trim}-${idx}"
+                            <div id="hl-zone-${trim}-${idx}" class="hl-zone-text"
                                 onmouseup="gererSelectionTexteAppreciation(event, '${trim}', ${idx})"
                                 ontouchend="gererSelectionTexteAppreciation(event, '${trim}', ${idx})"
                                 style="flex:1; line-height:1.65; font-size:0.95em; user-select:text; -webkit-user-select:text; cursor:text;">${segsHtml}</div>
@@ -10865,14 +11062,14 @@
 
                 return `
                     <tr style="border-bottom:1px solid var(--border); font-size:0.86em;">
-                        <td style="padding:10px; font-weight:700; color:var(--primary);">
+                        <td class="col-matiere" style="padding:10px; font-weight:700; color:var(--primary);">
                             ${escapeHTML(m.matiere || m.matiereBrute)}
                             ${m.professeur ? `<div style="font-size:0.82em; font-weight:400; color:var(--text-secondary);">${escapeHTML(m.professeur)}</div>` : ''}
                         </td>
-                        <td style="padding:8px 6px; text-align:center;">${renderPosBadge(m.positionnement)}</td>
-                        <td style="padding:8px 8px; text-align:center; font-weight:800; color:var(--primary);">${escapeHTML(m.moyenneEleve || '-')}</td>
-                        <td style="padding:8px 8px; text-align:center; color:var(--text-secondary);">${escapeHTML(m.moyenneClasse || '-')}</td>
-                        <td style="padding:10px;">
+                        <td class="col-pos" style="padding:8px 6px; text-align:center;">${renderPosBadge(m.positionnement)}</td>
+                        <td class="col-eleve" style="padding:8px 8px; text-align:center; font-weight:800; color:var(--primary);">${escapeHTML(m.moyenneEleve || '-')}</td>
+                        <td class="col-classe" style="padding:8px 8px; text-align:center; color:var(--text-secondary);">${escapeHTML(m.moyenneClasse || '-')}</td>
+                        <td class="col-appr" style="padding:10px;">
                             ${apprCellHtml}
                         </td>
                     </tr>
@@ -10894,12 +11091,12 @@
 
             container.innerHTML = `
                 <div style="border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--card-bg);">
-                    <div style="background:rgba(46, 204, 113, 0.12); padding:10px 15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-bottom:1px solid var(--border);">
+                    <div class="bulletin-extrait-header" style="background:rgba(46, 204, 113, 0.12); padding:10px 15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-bottom:1px solid var(--border);">
                         <div style="font-size:0.88em; font-weight:700; color:#166534; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                             <span>✅ Bulletin analysé : <b>${escapeHTML(ext.fileName || 'Bulletin.pdf')}</b> (${ext.matieres.length} matières)</span>
                             ${ext.moyenneGeneraleExtraite ? `<span class="ia-pill" style="background:#dcfce7; color:#15803d;">Moy. extraite : ${escapeHTML(ext.moyenneGeneraleExtraite)}/20 (Classe : ${escapeHTML(ext.moyenneClasseExtraite || '-')})</span>` : ''}
                         </div>
-                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <div class="bulletin-extrait-actions" style="display:flex; gap:6px; flex-wrap:wrap;">
                             <button type="button" class="btn-blue" onclick="basculerHauteurBulletinExtrait('${trim}')" style="padding:5px 10px; font-size:0.78em; border-radius:6px; text-transform:none;" title="Alterner entre grande fenêtre (820 px) et affichage intégral sans ascenseur interne">
                                 ${localStorage.getItem('pp_bulletin_fullheight') === '1' ? '↕️ Hauteur 820px' : '↕️ Tout déplier'}
                             </button>
@@ -10943,15 +11140,15 @@
                     </div>
                     ${customPaletteDrawerHtml}
 
-                    <div id="bulletin-extrait-scroll-box" style="${localStorage.getItem('pp_bulletin_fullheight') === '1' ? 'max-height:none; overflow-y:visible;' : 'max-height:820px; overflow-y:auto; resize:vertical;'}">
-                        <table style="margin:0; border-radius:0; box-shadow:none;">
+                    <div id="bulletin-extrait-scroll-box" style="${localStorage.getItem('pp_bulletin_fullheight') === '1' ? 'max-height:none; overflow-y:visible; overflow-x:auto; -webkit-overflow-scrolling:touch;' : 'max-height:820px; overflow-y:auto; overflow-x:auto; -webkit-overflow-scrolling:touch; resize:vertical;'}">
+                        <table class="bulletin-extrait-table" style="margin:0; border-radius:0; box-shadow:none;">
                             <thead style="position:sticky; top:0; z-index:5;">
                                 <tr style="font-size:0.78em;">
-                                    <th style="padding:8px 10px; width:170px;">Matière & Professeur</th>
-                                    <th style="padding:8px 6px; width:45px; text-align:center;">Pos.</th>
-                                    <th style="padding:8px 8px; width:65px; text-align:center;">Élève</th>
-                                    <th style="padding:8px 8px; width:65px; text-align:center;">Clas.</th>
-                                    <th style="padding:8px 10px;">Appréciations surlignées (cliquez, utilisez ✂️ Scinder ou sélectionnez des mots à la souris)</th>
+                                    <th class="col-matiere" style="padding:8px 10px; width:170px;">Matière & Professeur</th>
+                                    <th class="col-pos" style="padding:8px 6px; width:45px; text-align:center;">Pos.</th>
+                                    <th class="col-eleve" style="padding:8px 8px; width:65px; text-align:center;">Élève</th>
+                                    <th class="col-classe" style="padding:8px 8px; width:65px; text-align:center;">Clas.</th>
+                                    <th class="col-appr" style="padding:8px 10px;">Appréciations surlignées (cliquez, utilisez ✂️ Scinder ou sélectionnez des mots à la souris)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -12194,7 +12391,7 @@
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(() => {
                     showModal("Copié ✅", `L'appréciation du <b>${escapeHTML(e.bilansTrimestriels[idx].trimestre)}</b> (${text.length} caractères) a été copiée dans le presse-papiers.`);
-                }).catch(() => {});
+                }).catch(() => { });
             }
         }
 
