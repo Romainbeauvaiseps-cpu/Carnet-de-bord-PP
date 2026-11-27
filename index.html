@@ -10011,7 +10011,7 @@
             }
         };
 
-        const HIGHLIGHT_CYCLE_ORDER = [
+        const BUILTIN_HIGHLIGHT_ORDER = [
             "travail_pos",
             "comportement_pos",
             "travail_neg",
@@ -10020,6 +10020,28 @@
             "conseils",
             "neutre"
         ];
+
+        const HIGHLIGHT_CYCLE_ORDER = [...BUILTIN_HIGHLIGHT_ORDER];
+
+        const CUSTOM_STABILO_STORAGE_KEY = "pp_custom_stabilo_categories_v1";
+
+        const STABILO_PRESET_SWATCHES = [
+            { hex: "#fbcfe8", name: "Rose" },
+            { hex: "#a5f3fc", name: "Cyan" },
+            { hex: "#d9f99d", name: "Vert lime" },
+            { hex: "#fde68a", name: "Ambre" },
+            { hex: "#c7d2fe", name: "Indigo" },
+            { hex: "#fecdd3", name: "Corail" },
+            { hex: "#99f6e4", name: "Turquoise" },
+            { hex: "#e2e8f0", name: "Gris clair" }
+        ];
+
+        let activeStabiloPen = "cycle";
+        let stabiloCustomPaletteOpen = false;
+        let stabiloPickerHex = "#fbcfe8";
+        let stabiloPickerLabel = "";
+        let stabiloPickerPolarity = "info";
+        let appreciationEditRowKey = null;
 
         function normaliserHexCouleur(hex) {
             const raw = String(hex || "").trim();
